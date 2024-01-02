@@ -3,12 +3,12 @@ CFLAGS_GIO  = $(shell pkg-config --cflags --libs gio-2.0)
 CFLAGS_GIO_UNIX  = $(shell pkg-config --cflags --libs gio-unix-2.0)
 
 
-CFLAGS = -g -Wall -Werror
+CFLAGS += -g -Wall -Werror
 CFLAGS += $(CFLAGS_DBUS)
 CFLAGS += $(CFLAGS_GIO)
 CFLAGS += $(CFLAGS_GIO_UNIX)
 
-CC=gcc
+CC?=gcc
 DEPS = rauc-installer-generated.h
 
 all: cerber-client-test
