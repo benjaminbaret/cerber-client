@@ -24,7 +24,7 @@ out:
  */
 
 // same method as slot_statusm but with a different return type (string here)
-static char *slot_status_string(RInstaller *installer, GError **error)
+/* static char *slot_status_string(RInstaller *installer, GError **error)
 {
 
     GVariant *slot_status_array = NULL;
@@ -40,4 +40,4 @@ static char *slot_status_string(RInstaller *installer, GError **error)
 
 out:
     return "0";
-}
+} */

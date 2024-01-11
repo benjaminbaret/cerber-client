@@ -1,19 +1,14 @@
-#include "dbus_service.c"
-#include "http.c"
+//#include "dbus_service.c"
 
 // remove me later : 
 #include "rauc-installer-generated.h"
+#include <curl/curl.h>
 
 
 int main(void)
 {
-    if(testGetHttp() == 0)
-    {
-        g_print("Nothing to do\n");
-    }
-    else
-    {
-        g_print("Sending slot-status");
+
+        g_print("Sending slot-status\n");
         
         GError *error = NULL;
 
@@ -24,8 +19,8 @@ int main(void)
         if(!installer)
             goto error;
 
-        char *c = slot_status_string(installer, &error);
-        testPostHttp(c);
+      //slot_status_string(installer, &error);
+        
     
 
     error:
@@ -33,7 +28,7 @@ int main(void)
         {
             g_print("Error : %d\n", error->code);
         } 
-    }
+    
     
     return 0;
 }

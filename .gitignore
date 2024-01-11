@@ -1,5 +1,6 @@
 # cerber
 cerber-client
+src/build/*
 
 # Prerequisites
 *.d
