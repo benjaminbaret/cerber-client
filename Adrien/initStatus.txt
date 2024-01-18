@@ -1,0 +1,2 @@
+token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoic2lnbmF0dXJlIiwiaWF0IjoxNzA1NTc1MzMyLCJleHAiOjE3MDU1NzYyMzJ9.JrhEvNr_Bv8NjbXRIGKmkTYaxDPRO3BpIkT2PYGzLPo
+status = online
