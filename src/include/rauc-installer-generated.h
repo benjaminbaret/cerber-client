@@ -393,14 +393,14 @@ typedef struct _RInstallerSkeletonPrivate RInstallerSkeletonPrivate;
 
 struct _RInstallerSkeleton
 {
-  /*< private >*/
-  GDBusInterfaceSkeleton parent_instance;
+    /*< private >*/
+    GDBusInterfaceSkeleton parent_instance;
   RInstallerSkeletonPrivate *priv;
 };
 
 struct _RInstallerSkeletonClass
 {
-  GDBusInterfaceSkeletonClass parent_class;
+    GDBusInterfaceSkeletonClass parent_class;
 };
 
 GType r_installer_skeleton_get_type (void) G_GNUC_CONST;
