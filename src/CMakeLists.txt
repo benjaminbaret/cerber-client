@@ -14,7 +14,8 @@ file(GLOB_RECURSE sources
     main.c 
     api_requests.c
     simple-json-parser.c
-    rauc-installer-generated.c    
+    rauc-installer-generated.c   
+    dbus.c
     ./include/*.h)
 
 

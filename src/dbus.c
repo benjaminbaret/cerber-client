@@ -1,4 +1,4 @@
-#include "include/DBusLib.h"
+#include "include/dbus.h"
 
 /*
  * Create a connection to the D-Bus.

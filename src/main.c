@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "DBusLib.h"
+#include "include/dbus.h"
 
 char *BUNDLE_PATH = "/data/bundle.raucb";
 

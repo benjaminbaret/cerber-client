@@ -1,3 +1,7 @@
+#ifndef API_REQUESTS_H
+#define API_REQUESTS_H
+
+
 #include <curl/curl.h>
 #include <glib-object.h>
 #include <json-glib/json-glib.h>
@@ -26,3 +30,5 @@ glong api_patch_status(char* p_cJwtToken, char* p_cStatus);
 glong api_patch_progress(char* p_cJwtToken, char* p_cUpdateProgress);
 
 gchar* api_get_update_next(char* p_cJwtToken);
+
+#endif // API_REQUESTS_H

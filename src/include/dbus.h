@@ -1,5 +1,5 @@
-#ifndef DBUSLIB_H
-#define DBUSLIB_H
+#ifndef DBUS_H
+#define DBUS_H
 
 #include <gio/gio.h>
 
@@ -31,4 +31,4 @@ progressBundle getProgress(GDBusConnection *connection, GError *error);
 // Current slot booting
 gchar* getSlot(GDBusConnection *connection, GError *error);
 
-#endif // DBUSLIB_H
+#endif // DBUS_H
