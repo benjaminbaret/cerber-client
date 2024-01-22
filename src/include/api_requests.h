@@ -31,4 +31,6 @@ glong api_patch_progress(gchar* p_cJwtToken, gchar* p_cUpdateProgress);
 
 gchar* api_get_update_next(gchar* p_cJwtToken);
 
+gchar* poll_for_updates(gchar* p_cJwtToken);
+
 #endif // API_REQUESTS_H

@@ -63,7 +63,7 @@ gchar* api_post_device_signin()
 
     if(l_cUrl == NULL || l_cSignature == NULL || l_cPassword == NULL)
     {
-        g_error("Error on config file : Missing a value");
+        g_warning("Error on config file : Missing a value");
         goto out;
     }
 
@@ -73,7 +73,7 @@ gchar* api_post_device_signin()
 
     if (!curl) 
     {
-        g_error("Starting libcurl session failed");
+        g_warning("Starting libcurl session failed");
         goto out;
     }
 
@@ -96,7 +96,7 @@ gchar* api_post_device_signin()
     json_data =  (gchar *)malloc(json_data_size);
 
     if (!json_data) {
-        g_error("Memory allocation failed.");
+        g_warning("Memory allocation failed.");
         goto out;
     }
     snprintf(json_data, json_data_size, json_template, l_cSignature, l_cPassword);
@@ -112,7 +112,7 @@ gchar* api_post_device_signin()
     res = curl_easy_perform(curl);
 
     if (res != CURLE_OK) {
-        g_error("cURL request failed: %s\n", curl_easy_strerror(res));
+        g_warning("cURL request failed: %s\n", curl_easy_strerror(res));
         goto out;
     }
 
@@ -123,7 +123,7 @@ gchar* api_post_device_signin()
 
     json_parser_load_from_data(parser, response_buffer, -1, NULL);
     root = json_node_get_object(json_parser_get_root(parser));
-    gchar* l_cToken = NULL;
+    gchar* l_cJwtToken = NULL;
 
     g_message("HTTP code: %ld\n", http_code);
 
@@ -132,7 +132,7 @@ gchar* api_post_device_signin()
         case HTTP_OK:
         {
             const gchar *l_cResponse = json_object_get_string_member(root, "access_token");
-            l_cToken = l_cResponse;
+            l_cJwtToken = l_cResponse;
             break;
         }
         case HTTP_BAD_REQUEST:
@@ -153,7 +153,7 @@ gchar* api_post_device_signin()
     g_free(l_cConcatenatedUrl);
     g_free(json_data);
     g_free(response_buffer);
-    return l_cToken;
+    return l_cJwtToken;
 
 out:
     g_free(l_cConcatenatedUrl);
@@ -186,13 +186,13 @@ glong api_patch (gchar* p_cRoute, gchar* p_cJwtToken, gchar* p_cBody)
 
     if(l_cUrl == NULL)
     {
-        g_error("Error on config file : Missing a value");
+        g_warning("Error on config file : Missing a value");
         goto out;
     }
 
     if (!curl)
     {
-        g_error("Starting libcurl session failed");
+        g_warning("Starting libcurl session failed");
         goto out;
     }
 
@@ -233,7 +233,7 @@ glong api_patch (gchar* p_cRoute, gchar* p_cJwtToken, gchar* p_cBody)
     res = curl_easy_perform(curl); 
 
     if (res != CURLE_OK) {
-        g_error("cURL request failed: %s\n", curl_easy_strerror(res));
+        g_warning("cURL request failed: %s\n", curl_easy_strerror(res));
         goto out;
     }
 
@@ -337,7 +337,7 @@ out:
  * @return gchar* : The next update url
  * @note The returned string must be freed
 */
-char* api_get_update_next (gchar* p_cJwtToken)
+gchar* api_get_update_next (gchar* p_cJwtToken)
 {
     CURL *curl;
     CURLcode res;
@@ -353,13 +353,13 @@ char* api_get_update_next (gchar* p_cJwtToken)
 
     if(l_cUrl == NULL)
     {
-        g_error("Error on config file : Missing a value");
+        g_warning("Error on config file : Missing a value");
         goto out;
     }
 
     if (!curl)
     {
-        g_error("Starting libcurl session failed");
+        g_warning("Starting libcurl session failed");
         goto out;
     }
 
@@ -397,7 +397,7 @@ char* api_get_update_next (gchar* p_cJwtToken)
     res = curl_easy_perform(curl); 
 
     if (res != CURLE_OK) {
-        g_error("cURL request failed: %s\n", curl_easy_strerror(res));
+        g_warning("cURL request failed: %s\n", curl_easy_strerror(res));
         goto out;
     }
 
@@ -423,3 +423,42 @@ out:
     g_free(l_cConcatenatedUrl);
     return "";
 }
+
+/**
+ * @brief Poll for updates on the API
+ * @param jwtToken : The JWT token
+ * @return The number of updates available
+ */
+
+gchar* poll_for_updates(gchar* p_cJwtToken) {
+    gint polling = 1;
+    gchar* updateUrl;
+    
+    do {
+        updateUrl = api_get_update_next(p_cJwtToken);
+
+        if (updateUrl != NULL && strlen(updateUrl) > 0) {
+            // Stop polling
+            polling = 0;
+
+            // Handle the update URL, for example, initiate a download or perform other actions
+            printf("Update available at: %s\n", updateUrl);
+        } else {
+            // No update available, you can log this if needed
+            printf("No update available.\n");
+        }
+
+        // Sleep for the specified interval before polling again
+        sleep(1);
+
+    } while (polling == 1);
+
+    // It's important to check if updateUrl is not NULL before returning it
+    if (updateUrl != NULL) {
+        return updateUrl;
+    } else {
+        // Handle the case where updateUrl is NULL (no update available)
+        return NULL;
+    }
+}
+
