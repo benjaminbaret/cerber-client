@@ -16,6 +16,7 @@ file(GLOB_RECURSE sources
     simple-json-parser.c
     rauc-installer-generated.c   
     dbus.c
+    locker.c
     ./include/*.h)
 
 
