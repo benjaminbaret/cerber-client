@@ -5,7 +5,7 @@
 #include <curl/curl.h>
 #include <glib-object.h>
 #include <json-glib/json-glib.h>
-#include "simple-json-parser.h"
+#include "../include/simple-json-parser.h"
 
 #define MAX_LINE_LENGTH 200
 #define MAX_DATA_LENGTH 200

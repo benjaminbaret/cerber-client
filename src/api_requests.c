@@ -414,7 +414,7 @@ gchar* api_get_update_next (gchar* p_cJwtToken)
 
     json_parser_load_from_data(parser, response_buffer, -1, NULL);
     JsonObject *root = json_node_get_object(json_parser_get_root(parser));
-    gchar *url = json_object_get_string_member(root, "uri");
+    gchar *url = json_object_get_string_member(root, "url");
 
     g_free(l_cConcatenatedUrl);    
     return url;
