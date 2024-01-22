@@ -21,6 +21,7 @@ int main()
 
     
     l_cJwtToken = api_post_device_signin();
+    g_warning("JWT Token : %s", l_cJwtToken);
     l_cstatus = "online";
     api_patch_status(l_cJwtToken, l_cstatus);
 

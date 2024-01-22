@@ -102,12 +102,14 @@ gchar* api_post_device_signin()
     snprintf(json_data, json_data_size, json_template, l_cSignature, l_cPassword);
 
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_data);
-    response_buffer =  (gchar*)malloc(sizeof (gchar) * 2000);
+    response_buffer =  (gchar*)malloc(sizeof (gchar) * 200);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, response_buffer);
 
 
     /* ---- Send request ---- */
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     g_message("Sending POST request at %s", l_cConcatenatedUrl);
     res = curl_easy_perform(curl);
 
@@ -117,7 +119,7 @@ gchar* api_post_device_signin()
     }
 
     /* ---- Parsing response ---- */
-    response_buffer[2000] = '\0'; // ensure buffer is null-terminated
+    response_buffer[200] = '\0'; // ensure buffer is null-terminated
     glong http_code = 0;
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
 
@@ -205,6 +207,8 @@ glong api_patch (gchar* p_cRoute, gchar* p_cJwtToken, gchar* p_cBody)
     /* ----- Building HTTP Request ----- */
 
     /* ---- Path ---- */
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     curl_easy_setopt(curl, CURLOPT_URL, l_cConcatenatedUrl);
 
     /* ---- Method ---- */
@@ -268,13 +272,13 @@ glong api_patch_status(gchar* p_cJwtToken, gchar* p_cStatus)
 {
     gchar* l_cRoute = "/device/status";
     gchar* l_cJsonBody = NULL;
-    gchar* l_cJsonBodyTemplate = "{ \"status\" : \"%s\"}}";
+    gchar* l_cJsonBodyTemplate = "{ \"status\" : \"%s\"}";
     glong l_lHttpCode;
 
     
     /* ---- Building the body ---- */
-    size_t l_sizeJsonDataSize = snprintf(NULL, 0, l_cJsonBodyTemplate, &p_cStatus) + 1;
-    l_cJsonBody =  (gchar *)malloc(l_sizeJsonDataSize);
+    size_t l_sizeJsonDataSize = snprintf(NULL, 0, l_cJsonBodyTemplate, p_cStatus) + 1;
+    l_cJsonBody = (gchar *)malloc(l_sizeJsonDataSize);
 
     if (!l_cJsonBody) {
         g_warning("Memory allocation failed.");
@@ -372,6 +376,8 @@ gchar* api_get_update_next (gchar* p_cJwtToken)
     /* ----- Building HTTP Request ----- */
 
     /* ---- Path ---- */
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     curl_easy_setopt(curl, CURLOPT_URL, l_cConcatenatedUrl);
 
     /* ---- Method ---- */
@@ -433,14 +439,8 @@ out:
 gchar* poll_for_updates(gchar* p_cJwtToken) {
     gint polling = 1;
     gchar* updateUrl;
-    gchar* l_cstatus;
-
     
     do {
-        l_cstatus = "Pending";
-        api_patch_status(p_cJwtToken, l_cstatus);
-
-        
         updateUrl = api_get_update_next(p_cJwtToken);
 
         if (updateUrl != NULL && strlen(updateUrl) > 0) {
@@ -451,6 +451,7 @@ gchar* poll_for_updates(gchar* p_cJwtToken) {
             printf("Update available at: %s\n", updateUrl);
         } else {
             // No update available, you can log this if needed
+            printf("No update available.\n");
         }
 
         // Sleep for the specified interval before polling again
@@ -466,4 +467,3 @@ gchar* poll_for_updates(gchar* p_cJwtToken) {
         return NULL;
     }
 }
-
