@@ -1,7 +1,7 @@
 #include <stdio.h>
-#include "include/dbus.h"
-#include "include/locker.h"
-#include "include/api_requests.h"
+#include "dbus.h"
+#include "locker.h"
+#include "api_requests.h"
 
 
 char *BUNDLE_PATH = "/data/bundle.raucb";
@@ -11,7 +11,7 @@ char *BUNDLE_PATH = "/data/bundle.raucb";
 
 int main()
 {
-    /*
+    
     progressBundle progress;
     gchar *slotName;
 
@@ -49,11 +49,54 @@ int main()
     {
         printf("Le fichier boot n'existe pas\n");
     }
-    */
+    
 
     gchar* l_cJwtToken = api_post_device_signin();
     gchar* l_url = poll_for_updates(l_cJwtToken);
-    printf("url : %s\n", l_url);
-    g_free(l_url);
+
+
+     // Create a proxy for the bundle installer
+    GDBusProxy *proxyBundle = createProxy(connection, "de.pengutronix.rauc", "/", "de.pengutronix.rauc.Installer", error);
+    if (proxyBundle == NULL)
+    {
+        return 1;
+    }
+
+    // Call the InstallBundle method
+    FILE *lockRootfs = fopen("/data/rootfs.txt", "w");
+    fclose(lockRootfs);
+    GVariant *bundle = installBundle(proxyBundle,l_url, error);
+    if (bundle == NULL)
+    {
+        return 1;
+    }
+
+    sleep(1);
+
+    g_object_unref(proxyBundle);
+
+    while (1)
+    {
+        progress = getProgress(connection, error);
+        g_print("Progress: %d%% - %s (Nesting Depth: %d)\n", progress.pourcentage, progress.message, progress.nesting_depth);
+
+        if (progress.pourcentage == 100)
+        {
+
+            break;
+        }
+        sleep(1);
+    }
+
+    writeLockBoot(slotName);
+
+    g_print("Installation complete\n");
+
+    removeLockFile("/data/rootfs.txt");
+
+    sleep(5);
+
+    g_object_unref(connection);
+
     return 0;
 }

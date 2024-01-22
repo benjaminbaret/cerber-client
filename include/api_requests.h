@@ -10,7 +10,7 @@
 #define MAX_LINE_LENGTH 200
 #define MAX_DATA_LENGTH 200
 #define MAX_ENTRIES 2
-#define SIZE 250
+#define SIZE 2500
 
 
 #define HTTP_OK 200

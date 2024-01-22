@@ -1,10 +1,10 @@
-#include "include/dbus.h"
+#include "dbus.h"
 
 /*
  * Create a connection to the D-Bus.
  */
 GDBusConnection* createConnection(){
-    GError *error = NULL;
+    GError *error = NULL;  
 
     // Connect to the D-Bus
     GDBusConnection *connection = g_bus_get_sync(G_BUS_TYPE_SYSTEM, NULL, &error);
@@ -60,10 +60,15 @@ GVariant* variantgetProgress(GDBusProxy *proxy, GError *error){
  * Call the InstallBundle method of the RAUC installer.
  */
 GVariant* installBundle(GDBusProxy *proxy, gchar *bundlePath, GError *error){
+    GVariantDict *args_dict = g_variant_dict_new(NULL);
+    g_variant_dict_insert(args_dict, "tls-no-verify", "b", TRUE);
+    GVariant *args = g_variant_dict_end(args_dict);
+
+    
     GVariant *installBundle = g_dbus_proxy_call_sync(
         proxy,
         "InstallBundle",  // Method name
-        g_variant_new("(sa{sv})", bundlePath, NULL),  // Method parameters
+        g_variant_new("(s@a{sv})", bundlePath, args),  // Method parameters
         G_DBUS_CALL_FLAGS_NONE,
         -1,  // Timeout (negative means default timeout)
         NULL,  // GCancellable

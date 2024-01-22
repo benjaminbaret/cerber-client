@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "stdlib.h": "c",
-        "api_requests.h": "c"
+        "api_requests.h": "c",
+        "stdio.h": "c"
     }
 }

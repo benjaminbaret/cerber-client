@@ -1,4 +1,4 @@
-#include "include/api_requests.h"
+#include "api_requests.h"
 
 /**
  * @brief Write callback for cURL
@@ -102,7 +102,7 @@ gchar* api_post_device_signin()
     snprintf(json_data, json_data_size, json_template, l_cSignature, l_cPassword);
 
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_data);
-    response_buffer =  (gchar*)malloc(sizeof (gchar) * 200);
+    response_buffer =  (gchar*)malloc(sizeof (gchar) * 2000);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, response_buffer);
 
@@ -117,7 +117,7 @@ gchar* api_post_device_signin()
     }
 
     /* ---- Parsing response ---- */
-    response_buffer[200] = '\0'; // ensure buffer is null-terminated
+    response_buffer[2000] = '\0'; // ensure buffer is null-terminated
     glong http_code = 0;
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
 
@@ -222,7 +222,7 @@ glong api_patch (gchar* p_cRoute, gchar* p_cJwtToken, gchar* p_cBody)
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, p_cBody);
 
     /* ---- Response ---- */
-    response_buffer =  (gchar*)malloc(sizeof (gchar) * 200);
+    response_buffer =  (gchar*)malloc(sizeof (gchar) * 2000);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, response_buffer);
     
@@ -239,7 +239,7 @@ glong api_patch (gchar* p_cRoute, gchar* p_cJwtToken, gchar* p_cBody)
 
 
     /* ---- Parsing response ---- */
-    response_buffer[200] = '\0'; // ensure buffer is null-terminated
+    response_buffer[2000] = '\0'; // ensure buffer is null-terminated
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
     g_message("%s", response_buffer);
 
@@ -386,7 +386,7 @@ gchar* api_get_update_next (gchar* p_cJwtToken)
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
     /* ---- Response ---- */
-    response_buffer =  (gchar*)malloc(sizeof (gchar) * 200);
+    response_buffer =  (gchar*)malloc(sizeof (gchar) * 2000);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, response_buffer);
     
@@ -402,7 +402,7 @@ gchar* api_get_update_next (gchar* p_cJwtToken)
     }
 
     /* ---- Parsing response ---- */
-    response_buffer[200] = '\0'; // ensure buffer is null-terminated
+    response_buffer[2000] = '\0'; // ensure buffer is null-terminated
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
     g_message("%s", response_buffer);
 
@@ -414,7 +414,7 @@ gchar* api_get_update_next (gchar* p_cJwtToken)
 
     json_parser_load_from_data(parser, response_buffer, -1, NULL);
     JsonObject *root = json_node_get_object(json_parser_get_root(parser));
-    gchar *url = json_object_get_string_member(root, "uri");
+    gchar *url = json_object_get_string_member(root, "url");
 
     g_free(l_cConcatenatedUrl);    
     return url;

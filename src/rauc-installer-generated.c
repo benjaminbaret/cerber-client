@@ -10,7 +10,7 @@
 #  include "config.h"
 #endif
 
-#include "include/rauc-installer-generated.h"
+#include "rauc-installer-generated.h"
 
 #include <string.h>
 #ifdef G_OS_UNIX

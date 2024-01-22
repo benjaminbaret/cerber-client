@@ -1,4 +1,4 @@
-#include "include/locker.h"
+#include "locker.h"
 #include <stdio.h>
 
 int checkIfFileExists(const char *filename)
