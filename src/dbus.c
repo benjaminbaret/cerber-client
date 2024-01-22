@@ -1,4 +1,8 @@
 #include "dbus.h"
+#include "errorsCode.h"
+
+
+
 
 /*
  * Create a connection to the D-Bus.
@@ -111,14 +115,18 @@ GVariant* variantgetSlotInfo(GDBusProxy *proxy, GError *error){
  * Get the progress property value of the current update. (pourcentage, message, nesting_depth)
  */
 progressBundle getProgress (GDBusConnection *connection, GError *error){
+    ErrorCode errorCode;
     progressBundle progress;
     GDBusProxy *proxyProgress = createProxy(connection, "de.pengutronix.rauc", "/", "de.pengutronix.rauc.Installer", error);
     if(proxyProgress == NULL){
-        // Erreur a traiter
+        errorCode = ERROR_CREATION_DBUS_PROXY;
+        g_warning("An error occured : %s", getErrorMessage(errorCode));
+
     }
     GVariant *progressBundle = variantgetProgress(proxyProgress, error);
     if(progressBundle == NULL){
-        // Erreur a traiter
+        errorCode = ERROR_CREATION_DBUS_VARIANT;
+        g_warning("An error occured : %s", getErrorMessage(errorCode));
     }
     g_variant_get(progressBundle, "(isi)", &progress.pourcentage, &progress.message, &progress.nesting_depth);
     g_variant_unref(progressBundle);
@@ -130,14 +138,17 @@ progressBundle getProgress (GDBusConnection *connection, GError *error){
  * Get the slot name currently booted . 
  */
 gchar* getSlot(GDBusConnection *connection, GError *error){
+    ErrorCode errorCode = ERROR_NONE;
     gchar *slotName;
     GDBusProxy *proxySlot = createProxy(connection, "de.pengutronix.rauc", "/", "de.pengutronix.rauc.Installer", error);
     if(proxySlot == NULL){
-        // Erreur a traiter
+        errorCode = ERROR_CREATION_DBUS_PROXY;
+        g_warning("An error occured : %s", getErrorMessage(errorCode));
     }
     GVariant *slotInfo = variantgetSlotInfo(proxySlot, error);
     if(slotInfo == NULL){
-        // Erreur a traiter
+        errorCode = ERROR_CREATION_DBUS_VARIANT;
+        g_warning("An error occured : %s", getErrorMessage(errorCode));
     }
     g_variant_get(slotInfo, "(s)", &slotName);
     g_variant_unref(slotInfo);

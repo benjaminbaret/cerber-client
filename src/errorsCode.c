@@ -1,5 +1,6 @@
-#include "error.h"
 #include <glib.h>
+#include "errorsCode.h"
+
 
 const gchar* getErrorMessage(ErrorCode code)
 {

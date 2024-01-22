@@ -433,8 +433,14 @@ out:
 gchar* poll_for_updates(gchar* p_cJwtToken) {
     gint polling = 1;
     gchar* updateUrl;
+    gchar* l_cstatus;
+
     
     do {
+        l_cstatus = "Pending";
+        api_patch_status(p_cJwtToken, l_cstatus);
+
+        
         updateUrl = api_get_update_next(p_cJwtToken);
 
         if (updateUrl != NULL && strlen(updateUrl) > 0) {
@@ -445,7 +451,6 @@ gchar* poll_for_updates(gchar* p_cJwtToken) {
             printf("Update available at: %s\n", updateUrl);
         } else {
             // No update available, you can log this if needed
-            printf("No update available.\n");
         }
 
         // Sleep for the specified interval before polling again

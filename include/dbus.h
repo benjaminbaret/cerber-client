@@ -9,6 +9,8 @@ typedef struct {
     gchar *message;
 } progressBundle;
 
+
+
 // Connection to the DBus
 GDBusConnection* createConnection();
 

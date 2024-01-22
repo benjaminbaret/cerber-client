@@ -2,6 +2,7 @@
 #include "dbus.h"
 #include "locker.h"
 #include "api_requests.h"
+#include "errorsCode.h"
 
 
 char *BUNDLE_PATH = "/data/bundle.raucb";
@@ -11,33 +12,38 @@ char *BUNDLE_PATH = "/data/bundle.raucb";
 
 int main()
 {
-    
+    ErrorCode errorCode = ERROR_NONE;
     progressBundle progress;
     gchar *slotName;
-
+    gchar* l_cJwtToken;
     GError *error = NULL;
+    gchar* l_cstatus;
+
+    
+    l_cJwtToken = api_post_device_signin();
+    l_cstatus = "online";
+    api_patch_status(l_cJwtToken, l_cstatus);
+
+
+
     GDBusConnection *connection = createConnection();
     if (connection == NULL)
     {
         return 1;
     }
-
     slotName = getSlot(connection, error);
 
-    // Check if lock for update exists
     if (checkIfFileExists("/data/rootfs.txt"))
     {
         //faire un fichier error pour faire un gestion erreur propre
-        printf("Le fichier rootfs existe \n"); 
-        printf("probleme durant la mise a jour\n");
+        g_message("Probleme durant la mise a jour");
+        errorCode = ERROR_DURING_DOWNLOAD_UPDATE;
+        g_warning(" An error occured : %s", getErrorMessage(errorCode));
     }
     else
     {
-        printf("Le fichier rootfs n'existe pas\n");
-        printf("pas de probleme durant la mise a jour\n");
     }
 
-    // Check if lock for boot exist and if it's the right partition
 
     if (checkIfFileExists("/data/boot.txt"))
     {
@@ -47,19 +53,21 @@ int main()
     }
     else
     {
-        printf("Le fichier boot n'existe pas\n");
+        errorCode = ERROR_DURING_REBOOT;
+        g_warning("An error occured : %s", getErrorMessage(errorCode));
     }
-    
 
-    gchar* l_cJwtToken = api_post_device_signin();
+
     gchar* l_url = poll_for_updates(l_cJwtToken);
+
 
 
      // Create a proxy for the bundle installer
     GDBusProxy *proxyBundle = createProxy(connection, "de.pengutronix.rauc", "/", "de.pengutronix.rauc.Installer", error);
     if (proxyBundle == NULL)
     {
-        return 1;
+        errorCode = ERROR_CREATION_DBUS_PROXY;
+        g_warning("An error occured : %s", getErrorMessage(errorCode));
     }
 
     // Call the InstallBundle method
@@ -68,24 +76,26 @@ int main()
     GVariant *bundle = installBundle(proxyBundle,l_url, error);
     if (bundle == NULL)
     {
-        return 1;
+        errorCode = ERROR_CREATION_DBUS_VARIANT;
+        g_warning("An error occured : %s", getErrorMessage(errorCode));
+    }else{
+        l_cstatus = "Triggered";
+        api_patch_status(l_cJwtToken, l_cstatus);
     }
-
-    sleep(1);
-
     g_object_unref(proxyBundle);
+
 
     while (1)
     {
+        api_patch_status(l_cJwtToken, l_cstatus);
         progress = getProgress(connection, error);
         g_print("Progress: %d%% - %s (Nesting Depth: %d)\n", progress.pourcentage, progress.message, progress.nesting_depth);
 
         if (progress.pourcentage == 100)
         {
-
             break;
         }
-        sleep(1);
+        usleep(100000);
     }
 
     writeLockBoot(slotName);
@@ -93,6 +103,9 @@ int main()
     g_print("Installation complete\n");
 
     removeLockFile("/data/rootfs.txt");
+
+    l_cstatus = "rebooting";
+    api_patch_status(l_cJwtToken, l_cstatus);
 
     sleep(5);
 
