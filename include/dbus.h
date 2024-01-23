@@ -15,26 +15,26 @@ typedef struct {
 GDBusConnection* createConnection();
 
 // Proxy for the RAUC installer
-GDBusProxy* createProxy(GDBusConnection *connection, gchar *name, gchar *path, gchar *interface, GError *error);
+GDBusProxy* createProxy(GDBusConnection *p_connection, gchar *p_name, gchar *p_path, gchar *p_interface, GError *p_error);
 
 // Variant for the progress property value of the current update
-GVariant* variantgetProgress(GDBusProxy *proxy, GError *error);
+GVariant* variantgetProgress(GDBusProxy *p_proxy, GError *p_error);
 
-GVariant* variantgetLastError(GDBusProxy *proxy, GError *error);
+GVariant* variantgetLastError(GDBusProxy *p_proxy, GError *p_error);
 
 // InstallBundle method of the RAUC installer
-GVariant* installBundle(GDBusProxy *proxy, gchar *bundlePath, GError *error);
+GVariant* installBundle(GDBusProxy *p_proxy, gchar *p_bundlePath, GError *p_error);
 
 
 // GetSlotInfo method of the RAUC installer
-GVariant* variantgetSlotInfo(GDBusProxy *proxy, GError *error);
+GVariant* variantgetSlotInfo(GDBusProxy *p_proxy, GError *p_error);
 
 // GetProgress method of the RAUC installer
-progressBundle getProgress(GDBusConnection *connection, GError *error);
+progressBundle getProgress(GDBusConnection *p_connection, GError *p_error);
 
 // Current slot booting
-gchar* getSlot(GDBusConnection *connection, GError *error);
+gchar* getSlot(GDBusConnection *p_connection, GError *p_error);
 
-gchar* getLastError(GDBusConnection *connection, GError *error);
+gchar* getLastError(GDBusConnection *p_connection, GError *p_error);
 
 #endif // DBUS_H

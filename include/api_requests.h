@@ -26,7 +26,10 @@ gchar* api_post_device_signin();
 
 glong api_patch(gchar* p_cRoute, gchar* p_cJwtToken, gchar* p_cBody);
 
-glong api_patch_status(gchar* p_cJwtToken, gchar* p_cStatus);
+glong api_patch_device_status(gchar* p_cJwtToken, gchar* p_cStatus);
+
+glong api_patch_update_status(gchar* p_cJwtToken, gchar* p_cStatus);
+
 glong api_patch_progress(gchar* p_cJwtToken, gchar* p_cUpdateProgress);
 
 gchar* api_get_update_next(gchar* p_cJwtToken);

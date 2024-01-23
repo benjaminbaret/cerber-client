@@ -118,12 +118,12 @@ gchar* api_post_device_signin()
     }
 
     /* ---- Parsing response ---- */
-    response_buffer[200] = '\0'; // ensure buffer is null-terminated
+    response_buffer[199] = '\0'; // ensure buffer is null-terminated
     glong http_code = 0;
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
 
     json_parser_load_from_data(parser, response_buffer, -1, NULL);
-    g_message("Response buffer %s", response_buffer);
+    //g_message("Response buffer %s", response_buffer);
 
     root = json_node_get_object(json_parser_get_root(parser));
     gchar* l_cJwtToken = NULL;
@@ -244,7 +244,7 @@ glong api_patch (gchar* p_cRoute, gchar* p_cJwtToken, gchar* p_cBody)
 
 
     /* ---- Parsing response ---- */
-    response_buffer[200] = '\0'; // ensure buffer is null-terminated
+    response_buffer[199] = '\0'; // ensure buffer is null-terminated
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
     //g_message("Response buffer : %s", response_buffer);
     g_message("HTTP code: %ld\n", http_code);
@@ -268,11 +268,51 @@ out:
  * @param p_cStatus : The status to patch
  * @return glong : The status code from the http response
 */
-glong api_patch_status(gchar* p_cJwtToken, gchar* p_cStatus)
+glong api_patch_device_status(gchar* p_cJwtToken, gchar* p_cStatus)
 {
-    gchar* l_cRoute = "/device/status";
+    gchar* l_cRoute = "/device/deviceStatus";
     gchar* l_cJsonBody = NULL;
-    gchar* l_cJsonBodyTemplate = "{ \"status\" : \"%s\"}";
+    gchar* l_cJsonBodyTemplate = "{ \"deviceStatus\" : \"%s\"}";
+    glong l_lHttpCode;
+
+    
+    /* ---- Building the body ---- */
+    size_t l_sizeJsonDataSize = snprintf(NULL, 0, l_cJsonBodyTemplate, p_cStatus) + 1;
+    l_cJsonBody = (gchar *)malloc(l_sizeJsonDataSize);
+
+    if (!l_cJsonBody) {
+        g_warning("Memory allocation failed.");
+        goto out;
+    }
+
+    snprintf(l_cJsonBody, l_sizeJsonDataSize, l_cJsonBodyTemplate, p_cStatus);
+
+
+    g_message("Body: %s", l_cJsonBody);
+
+
+    /* ---- Sending API request ---- */
+
+    l_lHttpCode = api_patch(l_cRoute, p_cJwtToken, l_cJsonBody);
+    
+    g_free(l_cJsonBody);
+    return l_lHttpCode;;
+out: 
+    g_free(l_cJsonBody);
+    return -1;
+}
+
+/**
+ * @brief Patch the update status
+ * @param p_cJwtToken : The JWT token
+ * @param p_cStatus : The status to patch
+ * @return glong : The status code from the http response
+*/
+glong api_patch_update_status(gchar* p_cJwtToken, gchar* p_cStatus)
+{
+    gchar* l_cRoute = "/device/updateStatus";
+    gchar* l_cJsonBody = NULL;
+    gchar* l_cJsonBodyTemplate = "{ \"updateStatus\" : \"%s\"}";
     glong l_lHttpCode;
 
     
@@ -303,6 +343,7 @@ out:
 }
 
 
+
 /**
  * @brief Patch the device progress
  * @param p_cJwtToken : The JWT token
@@ -316,7 +357,7 @@ glong api_patch_progress (gchar* p_cJwtToken, gchar* p_cUpdateProgress)
     gchar* l_cJsonBodyTemplate = "{ \"updateProgress\" : %s}";
     
     /* ---- Building the body ---- */
-    size_t l_sizeJsonDataSize = snprintf(NULL, 0, l_cJsonBodyTemplate, &p_cUpdateProgress) + 1;
+    size_t l_sizeJsonDataSize = snprintf(NULL, 0, l_cJsonBodyTemplate, p_cUpdateProgress) + 1;
     l_cJsonBody =  (gchar *)malloc(l_sizeJsonDataSize);
 
     if (!l_cJsonBody) {
@@ -327,7 +368,6 @@ glong api_patch_progress (gchar* p_cJwtToken, gchar* p_cUpdateProgress)
     snprintf(l_cJsonBody, l_sizeJsonDataSize, l_cJsonBodyTemplate, p_cUpdateProgress);
 
     g_message("Body: %s", l_cJsonBody);
-    printf("Body: %s", l_cJsonBody);
 
     return api_patch(l_cRoute, p_cJwtToken, l_cJsonBody);
 
@@ -410,8 +450,7 @@ gchar* api_get_update_next (gchar* p_cJwtToken)
     /* ---- Parsing response ---- */
     response_buffer[2000] = '\0'; // ensure buffer is null-terminated
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-    g_message("%s", response_buffer);
-
+    //g_message("Response buffer : %s", response_buffer);
     if(http_code != 200)
     {
         g_warning("HTTP CODE %ld received, message %s:", http_code, response_buffer);
@@ -433,9 +472,8 @@ out:
 /**
  * @brief Poll for updates on the API
  * @param jwtToken : The JWT token
- * @return The number of updates available
+ * @return gchar: The number of updates available
  */
-
 gchar* poll_for_updates(gchar* p_cJwtToken) {
     gint polling = 1;
     gchar* updateUrl;

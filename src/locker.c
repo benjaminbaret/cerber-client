@@ -1,10 +1,15 @@
 #include "locker.h"
 #include <stdio.h>
 
-gint checkIfFileExists(const char *filename)
+/**
+ * @brief Check if a file exists
+ * @param p_filename : The file to check
+ * @return gint : 1 if the file exists, 0 if not
+*/
+gint checkIfFileExists(const char *p_filename)
 {
     FILE *file;
-    if (file = fopen(filename, "r"))
+    if (file = fopen(p_filename, "r"))
     {
         fclose(file);
         return 1;
@@ -13,17 +18,22 @@ gint checkIfFileExists(const char *filename)
     return 0;
 }
 
-gint readLockBoot(gchar *slotName)
+/**
+ * @brief Read the lock boot file
+ * @param p_slotName : The slot name actualy booted
+ * @return gint : The compare result
+*/
+gint readLockBoot(gchar *p_slotName)
 {
-    FILE *lockBoot = fopen("/data/boot.txt", "r");
-    if (lockBoot == NULL)
+    FILE *l_fLockBoot = fopen("/data/boot.txt", "r");
+    if (l_fLockBoot == NULL)
     {
         return 3;
     }
     else
     {
-        char c = fgetc(lockBoot);
-        if (strcmp(slotName, "rootfs.0") == 0)
+        char c = fgetc(l_fLockBoot);
+        if (strcmp(p_slotName, "rootfs.0") == 0)
         {
             if (c == 'A')
             {
@@ -38,7 +48,7 @@ gint readLockBoot(gchar *slotName)
                 return 2;
             }
         }
-        else if (strcmp(slotName, "rootfs.1") == 0)
+        else if (strcmp(p_slotName, "rootfs.1") == 0)
         {
             if (c == 'B')
             {
@@ -53,39 +63,55 @@ gint readLockBoot(gchar *slotName)
                 return 2;
             }
         }
+        else{ // slotName is not rootfs.0 or rootfs.1 (should not happen)
+            return 4;
+        }
     }
-    fclose(lockBoot);
+    fclose(l_fLockBoot);
 }
 
-gint writeLockBoot(gchar *slotName)
+/**
+ * @brief Write the futur boot slot in the lock boot file
+ * @param p_slotName : The slot name actualy booted
+ * @return gint : 0 if no error, else error code
+*/
+gint writeLockBoot(gchar *p_slotName)
 {
-    FILE *lockBoot = fopen("/data/boot.txt", "w");
-    if (lockBoot == NULL)
+    FILE *l_fLockBoot = fopen("/data/boot.txt", "w");
+    if (l_fLockBoot == NULL)
     {
         return 2;
     }
     else
     {
-        if (strcmp(slotName, "rootfs.0") == 0)
+        if (strcmp(p_slotName, "rootfs.0") == 0)
         {
-            if (fprintf(lockBoot, "B") < 0)
+            if (fprintf(l_fLockBoot, "B") < 0)
             {
                 return 1;
             }
         }
-        else if (strcmp(slotName, "rootfs.1") == 0)
+        else if (strcmp(p_slotName, "rootfs.1") == 0)
         {
-            if (fprintf(lockBoot, "A") < 0)
+            if (fprintf(l_fLockBoot, "A") < 0)
             {
                 return 1;
             }
+        }
+        else{ // slotName is not rootfs.0 or rootfs.1 (should not happen)
+            return 3;
         }
     }
-    fclose(lockBoot);
+    fclose(l_fLockBoot);
     return 0;
 }
 
-int removeLockFile(gchar *filename)
+/**
+ * @brief Delete a file
+ * @param p_slotName : The slot name actualy booted
+ * @return gint : 0 if no error, else error code
+*/
+int removeLockFile(gchar *p_filename)
 {
-    return (remove(filename) == 0) ? 0 : 1;
+    return (remove(p_filename) == 0) ? 0 : 1;
 }

@@ -4,107 +4,131 @@
 
 
 
-/*
- * Create a connection to the D-Bus.
- */
+/**
+ * @brief Create a connection to the D-Bus
+ * @return GDBusConnection : TThe connection to the D-Bus
+*/
 GDBusConnection* createConnection(){
-    GError *error = NULL;  
+    GError *l_error = NULL;  
 
     // Connect to the D-Bus
-    GDBusConnection *connection = g_bus_get_sync(G_BUS_TYPE_SYSTEM, NULL, &error);
-    if (connection == NULL) {
-        g_printerr("Error connecting to D-Bus: %s\n", error->message);
-        g_error_free(error);
+    GDBusConnection *l_connection = g_bus_get_sync(G_BUS_TYPE_SYSTEM, NULL, &l_error);
+    if (l_connection == NULL) {
+        g_printerr("Error connecting to D-Bus: %s\n", l_error->message);
+        g_error_free(l_error);
         return NULL;
     }
-    return connection;
+    return l_connection;
 
 }
 
-/*
- * Create a proxy for the RAUC installer.
- */
-GDBusProxy* createProxy(GDBusConnection *connection, gchar *name, gchar *path, gchar *interface, GError *error){
+
+/**
+ * @brief Create a proxy for the RAUC installer
+ * @param p_connection : The connection to the D-Bus
+ * @param p_name : The name of the proxy
+ * @param p_path : The path of the proxy
+ * @param p_interface : The interface of the proxy
+ * @param p_error : The error
+ * @return GDBusProxy : The proxy
+*/
+GDBusProxy* createProxy(GDBusConnection *p_connection, gchar *p_name, gchar *p_path, gchar *p_interface, GError *p_error){
 
     // Create a proxy for the RAUC installer
-    GDBusProxy *proxy = g_dbus_proxy_new_sync(
-        connection,
+    GDBusProxy *l_proxy = g_dbus_proxy_new_sync(
+        p_connection,
         G_DBUS_PROXY_FLAGS_NONE,
         NULL,
-        name,
-        path,
-        interface,
+        p_name,
+        p_path,
+        p_interface,
         NULL,
-        &error
+        &p_error
     );
-    if (proxy == NULL) {
-        g_printerr("Error creating D-Bus proxy: %s\n", error->message);
-        g_error_free(error);
-        g_object_unref(connection);
+    if (l_proxy == NULL) {
+        g_printerr("Error creating D-Bus proxy: %s\n", p_error->message);
+        g_error_free(p_error);
+        g_object_unref(p_connection);
         return NULL;
     }
-    return proxy;
+    return l_proxy;
 }
 
-/*
- * Create the variant for the progress property value of the current update.
- */
-GVariant* variantgetProgress(GDBusProxy *proxy, GError *error){
-    GVariant *progressBundle = g_dbus_proxy_get_cached_property(proxy, "Progress");
-    if (progressBundle == NULL) {
-        g_printerr("Error getting property value: %s\n", error->message);
-        g_error_free(error);
-        g_object_unref(proxy);
+/**
+ * @brief Create a variant for progress value
+ * @param p_proxy : The proxy
+ * @param p_error : The error
+ * @return GVariant : The variant
+*/
+GVariant* variantgetProgress(GDBusProxy *p_proxy, GError *p_error){
+    GVariant *l_progressBundle = g_dbus_proxy_get_cached_property(p_proxy, "Progress");
+    if (l_progressBundle == NULL) {
+        g_printerr("Error getting property value: %s\n", p_error->message);
+        g_error_free(p_error);
+        g_object_unref(p_proxy);
         return NULL;
     }
-    return progressBundle;
+    return l_progressBundle;
 }
 
-GVariant* variantgetLastError(GDBusProxy *proxy, GError *error){
-    GVariant *lastError = g_dbus_proxy_get_cached_property(proxy, "LastError");
-    if (lastError == NULL) {
-        g_printerr("Error getting property value: %s\n", error->message);
-        g_error_free(error);
-        g_object_unref(proxy);
+/**
+ * @brief Create a variant for last error value
+ * @param p_proxy : The proxy
+ * @param p_error : The error
+ * @return GVariant : The variant
+*/
+GVariant* variantgetLastError(GDBusProxy *p_proxy, GError *p_error){
+    GVariant *l_lastError = g_dbus_proxy_get_cached_property(p_proxy, "LastError");
+    if (l_lastError == NULL) {
+        g_printerr("Error getting property value: %s\n", p_error->message);
+        g_error_free(p_error);
+        g_object_unref(p_proxy);
         return NULL;
     }
-    return lastError;
+    return l_lastError;
 }
 
-/*
- * Call the InstallBundle method of the RAUC installer.
- */
-GVariant* installBundle(GDBusProxy *proxy, gchar *bundlePath, GError *error){
-    GVariantDict *args_dict = g_variant_dict_new(NULL);
-    g_variant_dict_insert(args_dict, "tls-no-verify", "b", TRUE);
-    GVariant *args = g_variant_dict_end(args_dict);
+/**
+ * @brief Create a variant to install the bundle
+ * @param p_proxy : The proxy
+ * @param p_bundlePath : The path of the bundle
+ * @param p_error : The error
+ * @return GVariant : The variant
+*/
+GVariant* installBundle(GDBusProxy *p_proxy, gchar *p_bundlePath, GError *p_error){
+    GVariantDict *l_args_dict = g_variant_dict_new(NULL);
+    g_variant_dict_insert(l_args_dict, "tls-no-verify", "b", TRUE);
+    GVariant *l_args = g_variant_dict_end(l_args_dict);
 
     
-    GVariant *installBundle = g_dbus_proxy_call_sync(
-        proxy,
+    GVariant *l_installBundleVariant = g_dbus_proxy_call_sync(
+        p_proxy,
         "InstallBundle",  // Method name
-        g_variant_new("(s@a{sv})", bundlePath, args),  // Method parameters
+        g_variant_new("(s@a{sv})", p_bundlePath, l_args),  // Method parameters
         G_DBUS_CALL_FLAGS_NONE,
         -1,  // Timeout (negative means default timeout)
         NULL,  // GCancellable
-        &error
+        &p_error
     );
-    if (installBundle == NULL) {
-        g_printerr("Error calling InstallBundle: %s\n", error->message);
-        g_error_free(error);
-        g_object_unref(proxy);
+    if (l_installBundleVariant == NULL) {
+        g_printerr("Error calling InstallBundle: %s\n", p_error->message);
+        g_error_free(p_error);
+        g_object_unref(p_proxy);
         return NULL;
     }
-    return installBundle;
+    return l_installBundleVariant;
 }
 
-/*
- * Create the variant for the slot info.
- */
-GVariant* variantgetSlotInfo(GDBusProxy *proxy, GError *error){
+/**
+ * @brief Create a variant to get the slot info
+ * @param p_proxy : The proxy
+ * @param p_error : The error
+ * @return GVariant : The variant
+*/
+GVariant* variantgetSlotInfo(GDBusProxy *p_proxy, GError *p_error){
 
-    GVariant *slotInfo = g_dbus_proxy_call_sync(
-        proxy,
+    GVariant *l_slotInfo = g_dbus_proxy_call_sync(
+        p_proxy,
         "GetPrimary",
         NULL,
         G_DBUS_CALL_FLAGS_NONE,
@@ -112,78 +136,90 @@ GVariant* variantgetSlotInfo(GDBusProxy *proxy, GError *error){
         NULL,
         NULL
     );
-    if (slotInfo == NULL) {
-        g_printerr("Error calling GetPrimary: %s\n", error->message);
-        g_error_free(error);
-        g_object_unref(proxy);
+    if (l_slotInfo == NULL) {
+        g_printerr("Error calling GetPrimary: %s\n", p_error->message);
+        g_error_free(p_error);
+        g_object_unref(p_proxy);
         return NULL;
     }
 
-    return slotInfo;
+    return l_slotInfo;
 }
 
-/*
- * Get the progress property value of the current update. (pourcentage, message, nesting_depth)
- */
-progressBundle getProgress (GDBusConnection *connection, GError *error){
+/**
+ * @brief Get the progress value
+ * @param p_connection : The connection to the D-Bus
+ * @param p_error : The error
+ * @return progressBundle : The progress struc (pourcentage, message, nesting_depth)
+*/
+progressBundle getProgress (GDBusConnection *p_connection, GError *p_error){
     ErrorCode errorCode;
-    progressBundle progress;
-    GDBusProxy *proxyProgress = createProxy(connection, "de.pengutronix.rauc", "/", "de.pengutronix.rauc.Installer", error);
-    if(proxyProgress == NULL){
+    progressBundle l_progress;
+    GDBusProxy *l_proxy = createProxy(p_connection, "de.pengutronix.rauc", "/", "de.pengutronix.rauc.Installer", p_error);
+    if(l_proxy == NULL){
         errorCode = ERROR_CREATION_DBUS_PROXY;
         g_warning("An error occured : %s", getErrorMessage(errorCode));
 
     }
-    GVariant *progressBundle = variantgetProgress(proxyProgress, error);
-    if(progressBundle == NULL){
+    GVariant *l_bundleVariant = variantgetProgress(l_proxy, p_error);
+    if(l_bundleVariant == NULL){
         errorCode = ERROR_CREATION_DBUS_VARIANT;
         g_warning("An error occured : %s", getErrorMessage(errorCode));
     }
-    g_variant_get(progressBundle, "(isi)", &progress.pourcentage, &progress.message, &progress.nesting_depth);
-    g_variant_unref(progressBundle);
-    g_object_unref(proxyProgress);
-    return progress;
+    g_variant_get(l_bundleVariant, "(isi)", &l_progress.pourcentage, &l_progress.message, &l_progress.nesting_depth);
+    g_variant_unref(l_bundleVariant);
+    g_object_unref(l_proxy);
+    return l_progress;
 }
 
-gchar* getLastError(GDBusConnection *connection, GError *error){
+/**
+ * @brief Get the last error value
+ * @param p_connection : The connection to the D-Bus
+ * @param p_error : The error
+ * @return gchar* : The last error
+*/
+gchar* getLastError(GDBusConnection *p_connection, GError *p_error){
     ErrorCode errorCode;
-    gchar* lastError;
-    GDBusProxy *proxyLastError = createProxy(connection, "de.pengutronix.rauc", "/", "de.pengutronix.rauc.Installer", error);
-    if(proxyLastError == NULL){
+    gchar* l_cLastError;
+    GDBusProxy *l_proxy = createProxy(p_connection, "de.pengutronix.rauc", "/", "de.pengutronix.rauc.Installer", p_error);
+    if(l_proxy == NULL){
         errorCode = ERROR_CREATION_DBUS_PROXY;
         g_warning("An error occured : %s", getErrorMessage(errorCode));
 
     }
-    GVariant *lastErrorVariant = variantgetLastError(proxyLastError, error);
-    if(lastErrorVariant == NULL){
+    GVariant *l_lastErrorVariant = variantgetLastError(l_proxy, p_error);
+    if(l_lastErrorVariant == NULL){
         errorCode = ERROR_CREATION_DBUS_VARIANT;
         g_warning("An error occured : %s", getErrorMessage(errorCode));
     }
-    g_variant_get(lastErrorVariant, "s", &lastError);
-    g_variant_unref(lastErrorVariant);
-    g_object_unref(proxyLastError);
-    return lastError;
+    g_variant_get(l_lastErrorVariant, "s", &l_cLastError);
+    g_variant_unref(l_lastErrorVariant);
+    g_object_unref(l_proxy);
+    return l_cLastError;
 
 }
 
-/*
- * Get the slot name currently booted . 
- */
-gchar* getSlot(GDBusConnection *connection, GError *error){
+/**
+ * @brief Get the current slot booting
+ * @param p_connection : The connection to the D-Bus
+ * @param p_error : The error
+ * @return gchar* : The current slot booting
+*/
+gchar* getSlot(GDBusConnection *p_connection, GError *p_error){
     ErrorCode errorCode = ERROR_NONE;
-    gchar *slotName;
-    GDBusProxy *proxySlot = createProxy(connection, "de.pengutronix.rauc", "/", "de.pengutronix.rauc.Installer", error);
-    if(proxySlot == NULL){
+    gchar *l_cSlotName;
+    GDBusProxy *l_proxy = createProxy(p_connection, "de.pengutronix.rauc", "/", "de.pengutronix.rauc.Installer", p_error);
+    if(l_proxy == NULL){
         errorCode = ERROR_CREATION_DBUS_PROXY;
         g_warning("An error occured : %s", getErrorMessage(errorCode));
     }
-    GVariant *slotInfo = variantgetSlotInfo(proxySlot, error);
-    if(slotInfo == NULL){
+    GVariant *l_slotInfo = variantgetSlotInfo(l_proxy, p_error);
+    if(l_slotInfo == NULL){
         errorCode = ERROR_CREATION_DBUS_VARIANT;
         g_warning("An error occured : %s", getErrorMessage(errorCode));
     }
-    g_variant_get(slotInfo, "(s)", &slotName);
-    g_variant_unref(slotInfo);
-    g_object_unref(proxySlot);
-    return slotName;
+    g_variant_get(l_slotInfo, "(s)", &l_cSlotName);
+    g_variant_unref(l_slotInfo);
+    g_object_unref(l_proxy);
+    return l_cSlotName;
 }

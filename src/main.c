@@ -10,16 +10,17 @@ int main()
 {
     ErrorCode errorCode = ERROR_NONE;
     progressBundle progress;
-    gchar *slotName;
+    gchar *l_l_slotName;
     gchar *l_cJwtToken;
     GError *error = NULL;
-    gchar *l_cstatus;
+    gchar *l_cDeviceStatus;
+    gchar* l_cUpdateStatus;
     gchar *l_cPourcentage;
     gchar *l_cLastError;
 
     l_cJwtToken = api_post_device_signin();
-    l_cstatus = "online";
-    api_patch_status(l_cJwtToken, l_cstatus);
+    l_cDeviceStatus = "online";
+    api_patch_device_status(l_cJwtToken, l_cDeviceStatus);
 
     GDBusConnection *connection = createConnection();
     if (connection == NULL)
@@ -36,11 +37,10 @@ int main()
         g_warning("An error occured : %s", getErrorMessage(errorCode));
     }
 
-    slotName = getSlot(connection, error);
+    l_slotName = getSlot(connection, error);
 
     if (checkIfFileExists("/data/rootfs.txt"))
     {
-        // faire un fichier error pour faire un gestion erreur propre
         errorCode = ERROR_DURING_DOWNLOAD_UPDATE;
         g_warning(" An error occured : %s", getErrorMessage(errorCode));
     }
@@ -53,20 +53,23 @@ int main()
     {
         gint l_iBoot = 0;
         gint l_iRemoveLockFile = 0;
-        l_iBoot = readLockBoot(slotName);
+        l_iBoot = readLockBoot(l_slotName);
 
 
         switch (l_iBoot)
         {
         case 0:
             g_message("No error during boot");
+            l_cUpdateStatus = "Done";
+            api_patch_update_status(l_cJwtToken, l_cUpdateStatus);
+
             break;
         case 1:
             errorCode = ERROR_DURING_REBOOT;
             g_warning("An error occured : %s", getErrorMessage(errorCode));
             break;
         case 2:
-            errorCode = ERROR_DURING_REBOOT_SLOT_FILE;
+            errorCode = ERROR_UNKNOW_SLOT_BOOT_FILE;
             g_warning("An error occured : %s", getErrorMessage(errorCode));
             break;
         default:
@@ -117,14 +120,15 @@ int main()
         }
         else
         {
-            l_cstatus = "Triggered";
-            api_patch_status(l_cJwtToken, l_cstatus);
+            l_cUpdateStatus = "Triggered";
+            api_patch_update_status(l_cJwtToken, l_cUpdateStatus);
         }
+        sleep(3);
         g_object_unref(proxyBundle);
 
         while (1)
         {
-            api_patch_status(l_cJwtToken, l_cstatus);
+            api_patch_update_status(l_cJwtToken, l_cUpdateStatus);
 
             progress = getProgress(connection, error);
             l_cPourcentage = g_strdup_printf("%d", progress.pourcentage);
@@ -145,13 +149,13 @@ int main()
             {
                 break;
             }
-            usleep(1000000);
+            usleep(500000);
         }
 
     } while (g_strcmp0(l_cLastError, "") != 0);
 
     gint l_iWriteLockBoot = 0;
-    l_iWriteLockBoot = writeLockBoot(slotName);
+    l_iWriteLockBoot = writeLockBoot(l_slotName);
 
 
     switch (l_iWriteLockBoot)
@@ -184,16 +188,15 @@ int main()
         break;
     }
 
-    l_cstatus = "rebooting";
-    api_patch_status(l_cJwtToken, l_cstatus);
+    l_cUpdateStatus = "rebooting";
+    api_patch_update_status(l_cJwtToken, l_cUpdateStatus);
 
     sleep(5);
 
+    g_object_unref(proxy);
     g_object_unref(connection);
-    g_free(l_cJwtToken);
-    g_free(l_cstatus);
-    g_free(l_cPourcentage);
-    g_free(l_cLastError);
+   
+   system("reboot");
 
     return 0;
 }

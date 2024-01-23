@@ -5,7 +5,10 @@
         "stdio.h": "c",
         "errors.h": "c",
         "errorscode.h": "c",
-        "dbus.h": "c"
+        "dbus.h": "c",
+        "typeindex": "c",
+        "typeinfo": "c",
+        "system_error": "c"
     },
     "cmake.configureOnOpen": false
 }
