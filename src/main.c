@@ -10,7 +10,7 @@ int main()
 {
     ErrorCode errorCode = ERROR_NONE;
     progressBundle progress;
-    gchar *l_l_slotName;
+    gchar *l_slotName;
     gchar *l_cJwtToken;
     GError *error = NULL;
     gchar *l_cDeviceStatus;
