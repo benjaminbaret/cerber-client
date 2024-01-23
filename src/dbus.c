@@ -60,6 +60,17 @@ GVariant* variantgetProgress(GDBusProxy *proxy, GError *error){
     return progressBundle;
 }
 
+GVariant* variantgetLastError(GDBusProxy *proxy, GError *error){
+    GVariant *lastError = g_dbus_proxy_get_cached_property(proxy, "LastError");
+    if (lastError == NULL) {
+        g_printerr("Error getting property value: %s\n", error->message);
+        g_error_free(error);
+        g_object_unref(proxy);
+        return NULL;
+    }
+    return lastError;
+}
+
 /*
  * Call the InstallBundle method of the RAUC installer.
  */
@@ -132,6 +143,27 @@ progressBundle getProgress (GDBusConnection *connection, GError *error){
     g_variant_unref(progressBundle);
     g_object_unref(proxyProgress);
     return progress;
+}
+
+gchar* getLastError(GDBusConnection *connection, GError *error){
+    ErrorCode errorCode;
+    gchar* lastError;
+    GDBusProxy *proxyLastError = createProxy(connection, "de.pengutronix.rauc", "/", "de.pengutronix.rauc.Installer", error);
+    if(proxyLastError == NULL){
+        errorCode = ERROR_CREATION_DBUS_PROXY;
+        g_warning("An error occured : %s", getErrorMessage(errorCode));
+
+    }
+    GVariant *lastErrorVariant = variantgetLastError(proxyLastError, error);
+    if(lastErrorVariant == NULL){
+        errorCode = ERROR_CREATION_DBUS_VARIANT;
+        g_warning("An error occured : %s", getErrorMessage(errorCode));
+    }
+    g_variant_get(lastErrorVariant, "s", &lastError);
+    g_variant_unref(lastErrorVariant);
+    g_object_unref(proxyLastError);
+    return lastError;
+
 }
 
 /*

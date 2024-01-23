@@ -106,7 +106,6 @@ gchar* api_post_device_signin()
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, response_buffer);
 
-
     /* ---- Send request ---- */
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
@@ -124,6 +123,8 @@ gchar* api_post_device_signin()
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
 
     json_parser_load_from_data(parser, response_buffer, -1, NULL);
+    g_message("Response buffer %s", response_buffer);
+
     root = json_node_get_object(json_parser_get_root(parser));
     gchar* l_cJwtToken = NULL;
 
@@ -226,7 +227,7 @@ glong api_patch (gchar* p_cRoute, gchar* p_cJwtToken, gchar* p_cBody)
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, p_cBody);
 
     /* ---- Response ---- */
-    response_buffer =  (gchar*)malloc(sizeof (gchar) * 2000);
+    response_buffer =  (gchar*)malloc(sizeof (gchar) * 200);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, response_buffer);
     
@@ -243,15 +244,14 @@ glong api_patch (gchar* p_cRoute, gchar* p_cJwtToken, gchar* p_cBody)
 
 
     /* ---- Parsing response ---- */
-    response_buffer[2000] = '\0'; // ensure buffer is null-terminated
+    response_buffer[200] = '\0'; // ensure buffer is null-terminated
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-    g_message("%s", response_buffer);
-
+    //g_message("Response buffer : %s", response_buffer);
+    g_message("HTTP code: %ld\n", http_code);
     if(http_code != 200)
     {
         g_warning("HTTP CODE %ld received, message %s:", http_code, response_buffer);
     }
-
     g_free(l_cConcatenatedUrl);
     g_free(response_buffer);
     return http_code;
@@ -287,8 +287,8 @@ glong api_patch_status(gchar* p_cJwtToken, gchar* p_cStatus)
 
     snprintf(l_cJsonBody, l_sizeJsonDataSize, l_cJsonBodyTemplate, p_cStatus);
 
+
     g_message("Body: %s", l_cJsonBody);
-    printf("Body: %s", l_cJsonBody);
 
 
     /* ---- Sending API request ---- */

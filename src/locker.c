@@ -1,7 +1,7 @@
 #include "locker.h"
 #include <stdio.h>
 
-int checkIfFileExists(const char *filename)
+gint checkIfFileExists(const char *filename)
 {
     FILE *file;
     if (file = fopen(filename, "r"))
@@ -9,16 +9,16 @@ int checkIfFileExists(const char *filename)
         fclose(file);
         return 1;
     }
- 
-    return 0;
-} 
 
-int readLockBoot(gchar *slotName)
+    return 0;
+}
+
+gint readLockBoot(gchar *slotName)
 {
     FILE *lockBoot = fopen("/data/boot.txt", "r");
     if (lockBoot == NULL)
     {
-        g_print("Erreur ouverture fichier boot");
+        return 3;
     }
     else
     {
@@ -27,37 +27,29 @@ int readLockBoot(gchar *slotName)
         {
             if (c == 'A')
             {
-                printf("Pas de probleme durant le boot");
                 return 0;
             }
             else if (c == 'B')
             {
-                printf("Le fichier boot existe");
-                printf("probleme durant le boot");
                 return 1;
             }
             else
             {
-                printf("Partition inconnue");
                 return 2;
             }
         }
-        else if(strcmp(slotName, "rootfs.1") == 0)
+        else if (strcmp(slotName, "rootfs.1") == 0)
         {
             if (c == 'B')
             {
-                printf("Pas de probleme durant le boot");
                 return 0;
             }
             else if (c == 'A')
             {
-                printf("Le fichier boot existe");
-                printf("probleme durant le boot");
                 return 1;
             }
             else
             {
-                printf("Partition inconnue");
                 return 2;
             }
         }
@@ -65,37 +57,35 @@ int readLockBoot(gchar *slotName)
     fclose(lockBoot);
 }
 
-int writeLockBoot(gchar *slotName)
+gint writeLockBoot(gchar *slotName)
 {
     FILE *lockBoot = fopen("/data/boot.txt", "w");
     if (lockBoot == NULL)
     {
-        g_print("Erreur ouverture fichier boot");
+        return 2;
     }
     else
     {
         if (strcmp(slotName, "rootfs.0") == 0)
         {
-            fprintf(lockBoot, "B");
+            if (fprintf(lockBoot, "B") < 0)
+            {
+                return 1;
+            }
         }
         else if (strcmp(slotName, "rootfs.1") == 0)
         {
-            fprintf(lockBoot, "A");
+            if (fprintf(lockBoot, "A") < 0)
+            {
+                return 1;
+            }
         }
     }
     fclose(lockBoot);
+    return 0;
 }
 
-int removeLockFile(gchar* filename){
-    if (remove(filename) == 0)
-    {
-        printf("Le fichier %s a ete supprime avec succes\n", filename);
-        return 0;
-    }
-    else
-    {
-        printf("Le fichier %s n'a pas ete supprime\n", filename);
-        return 1;
-    }
-
+int removeLockFile(gchar *filename)
+{
+    return (remove(filename) == 0) ? 0 : 1;
 }

@@ -20,6 +20,8 @@ GDBusProxy* createProxy(GDBusConnection *connection, gchar *name, gchar *path, g
 // Variant for the progress property value of the current update
 GVariant* variantgetProgress(GDBusProxy *proxy, GError *error);
 
+GVariant* variantgetLastError(GDBusProxy *proxy, GError *error);
+
 // InstallBundle method of the RAUC installer
 GVariant* installBundle(GDBusProxy *proxy, gchar *bundlePath, GError *error);
 
@@ -32,5 +34,7 @@ progressBundle getProgress(GDBusConnection *connection, GError *error);
 
 // Current slot booting
 gchar* getSlot(GDBusConnection *connection, GError *error);
+
+gchar* getLastError(GDBusConnection *connection, GError *error);
 
 #endif // DBUS_H

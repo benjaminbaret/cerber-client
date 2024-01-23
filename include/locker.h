@@ -4,12 +4,12 @@
 #include <glib.h>
 
 
-int checkIfFileExists(const char *filename);
+gint checkIfFileExists(const char *filename);
 
-int readLockBoot(gchar *slotName);
+gint readLockBoot(gchar *slotName);
 
-int writeLockBoot(gchar *slotName);
+gint writeLockBoot(gchar *slotName);
 
-int removeLockFile(gchar* filename);
+gint removeLockFile(gchar* filename);
 
 #endif // LOCKER_H
