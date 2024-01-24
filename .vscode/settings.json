@@ -8,7 +8,8 @@
         "dbus.h": "c",
         "typeindex": "c",
         "typeinfo": "c",
-        "system_error": "c"
+        "system_error": "c",
+        "functional": "c"
     },
     "cmake.configureOnOpen": false
 }

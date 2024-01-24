@@ -53,7 +53,7 @@ int main()
     {
         gint l_iBoot = 0;
         gint l_iRemoveLockFile = 0;
-        l_iBoot = readLockBoot(l_slotName);
+        l_iBoot = readLockBoot(l_slotName, "/data/boot.txt");
 
 
         switch (l_iBoot)
@@ -156,7 +156,7 @@ int main()
     } while (g_strcmp0(l_cLastError, "") != 0);
 
     gint l_iWriteLockBoot = 0;
-    l_iWriteLockBoot = writeLockBoot(l_slotName);
+    l_iWriteLockBoot = writeLockBoot(l_slotName, "/data/boot.txt");
 
 
     switch (l_iWriteLockBoot)

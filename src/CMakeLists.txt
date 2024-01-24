@@ -49,3 +49,5 @@ target_link_libraries(cerber-client PRIVATE
     ${CURL_LIBRARIES}
     ${JSONGLIB_LIBRARIES}
 )
+
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../build/bin/)

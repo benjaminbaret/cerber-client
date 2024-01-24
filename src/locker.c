@@ -23,9 +23,9 @@ gint checkIfFileExists(const char *p_filename)
  * @param p_slotName : The slot name actualy booted
  * @return gint : The compare result
 */
-gint readLockBoot(gchar *p_slotName)
+gint readLockBoot(gchar *p_slotName, gchar* p_lockBootFile)
 {
-    FILE *l_fLockBoot = fopen("/data/boot.txt", "r");
+    FILE *l_fLockBoot = fopen(p_lockBootFile, "r");
     if (l_fLockBoot == NULL)
     {
         return 3;
@@ -75,7 +75,7 @@ gint readLockBoot(gchar *p_slotName)
  * @param p_slotName : The slot name actualy booted
  * @return gint : 0 if no error, else error code
 */
-gint writeLockBoot(gchar *p_slotName)
+gint writeLockBoot(gchar *p_slotName, gchar* p_lockBootFile)
 {
     FILE *l_fLockBoot = fopen("/data/boot.txt", "w");
     if (l_fLockBoot == NULL)
