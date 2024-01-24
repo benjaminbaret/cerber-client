@@ -100,6 +100,7 @@ int main()
     do
     {
         gchar *l_url = poll_for_updates(l_cJwtToken);
+        l_url = "http://nicoals/coucou";
 
         // Create a proxy for the bundle installer
         GDBusProxy *proxyBundle = createProxy(connection, "de.pengutronix.rauc", "/", "de.pengutronix.rauc.Installer", error);
