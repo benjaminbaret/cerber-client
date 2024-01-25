@@ -3,7 +3,7 @@
 
 START_TEST(test_check_file_exist_ok)
 {
-    gint result = checkIfFileExists("test/locker_test.c");
+    gint result = checkIfFileExists("../test/file/boot.txt");
     ck_assert_msg(result == 1, "test_check_file_exist_ok failed.");
 }
 END_TEST
@@ -59,7 +59,7 @@ Suite *locker_suite(void)
     // Test the function test_check_file_exist_ko
     tc_core = tcase_create("check_file_exist_ok");
     tcase_add_test(tc_core, test_check_file_exist_ok);
-    tcase_add_test(tc_core, test_check_file_exist_ko);
+    suite_add_tcase(s, tc_core);
 
     // Test the function test_check_file_exist_ko
     tc_core = tcase_create("check_file_exist_ko");

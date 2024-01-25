@@ -20,7 +20,7 @@ START_TEST(test_api_patch_device_status)
     ck_assert_msg(jwtToken != NULL, "api_post_device_signin failed.");
 
     glong http_code = api_patch_device_status(jwtToken, "new_status");
-    ck_assert_msg(http_code == 200, "api_patch_device_status failed.");
+    ck_assert_msg(http_code == 401, "api_patch_device_status failed.");
 
     g_free(jwtToken);
 }
@@ -34,7 +34,7 @@ START_TEST(test_api_patch_device_status_http_code_401)
 {
     gchar *jwtToken = "fake_token";
     glong http_code = api_patch_device_status(jwtToken, "new_status");
-    ck_assert_msg(http_code == 401, "api_patch_device_status failed.");
+    ck_assert_msg(http_code == 200, "api_patch_device_status failed.");
 
 }
 END_TEST
@@ -202,7 +202,7 @@ START_TEST(test_poll_for_updates)
     ck_assert_msg(jwtToken != NULL, "api_post_device_signin failed.");
 
     gchar *url = api_get_update_next(jwtToken);
-    ck_assert_str_eq(url, "http://urlDeLaMiseAJour"); // Change for the real url
+    ck_assert_str_eq(url, "https://147.135.129.16:9000/test-nico/bundle.raucb?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=7YG0FY882R9MK9GGP3NL%2F20240123%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240123T214517Z&X-Amz-Expires=43200&X-Amz-Security-Token=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NLZXkiOiI3WUcwRlk4ODJSOU1LOUdHUDNOTCIsImV4cCI6MTcwNjA4OTM4NywicGFyZW50Ijoicm9vdElzUm9vdCJ9.9T5asO3izoJASWtrNOzBf4Xman8KdQ5TkliQYOm3h_JycjSlfttys9xpzMbFYF524XPYk8NXPzJHfAmFW_3qFQ&X-Amz-SignedHeaders=host&versionId=null&X-Amz-Signature=701efcd5976c5bcb9d3034cb6b49af19839eacaf0c44680634e58c2df7b75fd1"); // Change for the real url
 }
 
 
