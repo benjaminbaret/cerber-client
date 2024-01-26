@@ -20,7 +20,7 @@ START_TEST(test_api_patch_device_status)
     ck_assert_msg(jwtToken != NULL, "api_post_device_signin failed.");
 
     glong http_code = api_patch_device_status(jwtToken, "new_status");
-    ck_assert_msg(http_code == 401, "api_patch_device_status failed.");
+    ck_assert_msg(http_code == 200, "api_patch_device_status failed.");
 
     g_free(jwtToken);
 }

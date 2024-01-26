@@ -100,7 +100,7 @@ int main()
     do
     {
         gchar *l_url = poll_for_updates(l_cJwtToken);
-        l_url = "https://147.135.129.16:9000/kaka/bundle%284%29.raucb?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=rootIsRoot%2F20240125%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240125T143610Z&X-Amz-Expires=36000&X-Amz-SignedHeaders=host&X-Amz-Signature=486fb604b044e658e1a1941e788f3bc7aa60f616c8df108fda23b168e480632b";
+        l_url = "https://147.135.129.16:9000/test-nico/update-2024.raucb?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=J7B7EKB5CY2MPIMHISO6%2F20240126%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240126T224200Z&X-Amz-Expires=43200&X-Amz-Security-Token=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NLZXkiOiJKN0I3RUtCNUNZMk1QSU1ISVNPNiIsImV4cCI6MTcwNjMzODE3MCwicGFyZW50Ijoicm9vdElzUm9vdCJ9.4A7v6C-wcdLgmnqLRO0dk51XmLlMAap-jlbBirigRhi05aBCk7VcRV7o7K0CcvctSWr-07JS1_xFRggts-edWg&X-Amz-SignedHeaders=host&versionId=null&X-Amz-Signature=85c0812d24679a300922427371053adbc10bded756ab6a33c9671a8b115873fd";
 
         // Create a proxy for the bundle installer
         GDBusProxy *proxyBundle = createProxy(connection, "de.pengutronix.rauc", "/", "de.pengutronix.rauc.Installer", error);
@@ -124,7 +124,6 @@ int main()
             l_cUpdateStatus = "Triggered";
             api_patch_update_status(l_cJwtToken, l_cUpdateStatus);
         }
-        sleep(3);
         g_object_unref(proxyBundle);
 
         while (1)
