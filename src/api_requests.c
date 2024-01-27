@@ -475,18 +475,18 @@ out:
  * @return gchar: The number of updates available
  */
 gchar* poll_for_updates(gchar* p_cJwtToken) {
-    gint polling = 1;
-    gchar* updateUrl;
+    gint l_iPolling = 1;
+    gchar* l_cUpdateUrl;
     
     do {
-        updateUrl = api_get_update_next(p_cJwtToken);
+        l_cUpdateUrl = api_get_update_next(p_cJwtToken);
 
-        if (updateUrl != NULL && strlen(updateUrl) > 0) {
+        if (l_cUpdateUrl != NULL && strlen(l_cUpdateUrl) > 0) {
             // Stop polling
-            polling = 0;
+            l_iPolling = 0;
 
             // Handle the update URL, for example, initiate a download or perform other actions
-            printf("Update available at: %s\n", updateUrl);
+            printf("Update available at: %s\n", l_cUpdateUrl);
         } else {
             // No update available, you can log this if needed
             printf("No update available.\n");
@@ -495,11 +495,11 @@ gchar* poll_for_updates(gchar* p_cJwtToken) {
         // Sleep for the specified interval before polling again
         sleep(1);
 
-    } while (polling == 1);
+    } while (l_iPolling == 1);
 
     // It's important to check if updateUrl is not NULL before returning it
-    if (updateUrl != NULL) {
-        return updateUrl;
+    if (l_cUpdateUrl != NULL) {
+        return l_cUpdateUrl;
     } else {
         // Handle the case where updateUrl is NULL (no update available)
         return NULL;
