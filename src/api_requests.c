@@ -479,8 +479,8 @@ gchar* poll_for_updates(gchar* p_cJwtToken) {
     gchar* l_cUpdateUrl;
     
     do {
-        updateUrl = api_get_update_next(p_cJwtToken)->body;
-        if(updateUrl == NULL)
+        l_cUpdateUrl = api_get_update_next(p_cJwtToken)->body;
+        if(l_cUpdateUrl == NULL)
         {
             g_warning("Error on api_get_update_next");
             return NULL;
