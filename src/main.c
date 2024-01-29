@@ -17,13 +17,14 @@ int main()
     gchar *l_cPourcentage;
     gchar *l_cLastError;
     gchar* l_cJwtToken;
+    gboolean l_cDeployStatus;
     http *l_httpSignIn;
     glong l_lHttpCode;
 
     l_cJwtToken = api_post_device_signin();
     l_cDeviceStatus = "online";
     l_lHttpCode = api_patch_device_status(l_cJwtToken, l_cDeviceStatus);
-    if(l_lHttpCode != 200)
+    if(l_lHttpCode == 401)
     {
         //errorCode = ERROR_DURING_PATCH_DEVICE_STATUS;
         //g_warning("An error occured : %s", getErrorMessage(errorCode));
@@ -72,7 +73,7 @@ int main()
             g_message("No error during boot");
             l_cUpdateStatus = "Done";
             l_lHttpCode = api_patch_update_status(l_cJwtToken, l_cUpdateStatus);
-            if(l_lHttpCode != 200)
+            if(l_lHttpCode == 401)
             {
                 //errorCode = ERROR_DURING_PATCH_UPDATE_STATUS;
                 //g_warning("An error occured : %s", getErrorMessage(errorCode));
@@ -117,6 +118,7 @@ int main()
     do
     {
         gchar *l_url = poll_for_updates(l_cJwtToken);
+        //l_url = "/data/update-2024.raucb";
         
         //l_url = "data/bundle.raucb";
         // Create a proxy for the bundle installer
@@ -140,7 +142,7 @@ int main()
         {
             l_cUpdateStatus = "Triggered";
             l_lHttpCode = api_patch_update_status(l_cJwtToken, l_cUpdateStatus);
-            if(l_lHttpCode != 200)
+            if(l_lHttpCode == 401)
             {
                 //errorCode = ERROR_DURING_PATCH_UPDATE_STATUS;
                 //g_warning("An error occured : %s", getErrorMessage(errorCode));
@@ -153,7 +155,7 @@ int main()
         while (1)
         {
             l_lHttpCode = api_patch_update_status(l_cJwtToken, l_cUpdateStatus);
-            if(l_lHttpCode != 200)
+            if(l_lHttpCode == 401)
             {
                 //errorCode = ERROR_DURING_PATCH_UPDATE_STATUS;
                 //g_warning("An error occured : %s", getErrorMessage(errorCode));
@@ -164,7 +166,7 @@ int main()
             progress = getProgress(connection, error);
             l_cPourcentage = g_strdup_printf("%d", progress.pourcentage);
             l_lHttpCode = api_patch_progress(l_cJwtToken, l_cPourcentage);
-            if(l_lHttpCode != 200)
+            if(l_lHttpCode == 401)
             {
                 //errorCode = ERROR_DURING_PATCH_PROGRESS;
                 //g_warning("An error occured : %s", getErrorMessage(errorCode));
@@ -228,13 +230,23 @@ int main()
 
     l_cUpdateStatus = "rebooting";
     l_lHttpCode = api_patch_update_status(l_cJwtToken, l_cUpdateStatus);
-    if(l_lHttpCode != 200)
+    if(l_lHttpCode == 401)
     {
         //errorCode = ERROR_DURING_PATCH_UPDATE_STATUS;
         //g_warning("An error occured : %s", getErrorMessage(errorCode));
         l_cJwtToken = api_post_device_signin();
         api_patch_update_status(l_cJwtToken, l_cUpdateStatus);
     }
+    l_cDeployStatus = FALSE;
+    l_lHttpCode = api_patch_deploy_status(l_cJwtToken, l_cDeployStatus);
+    if(l_lHttpCode == 401)
+    {
+        //errorCode = ERROR_DURING_PATCH_DEPLOY_STATUS;
+        //g_warning("An error occured : %s", getErrorMessage(errorCode));
+        l_cJwtToken = api_post_device_signin();
+        api_patch_deploy_status(l_cJwtToken, l_cDeployStatus);
+    }
+
 
     sleep(5);
 

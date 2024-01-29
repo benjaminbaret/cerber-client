@@ -350,6 +350,32 @@ out:
     return -1;
 }
 
+glong api_patch_deploy_status (gchar* p_cJwtToken, gboolean p_cDeployStatus)
+{
+    gchar* l_cRoute = "/device/deployment/status";
+    gchar* l_cJsonBody = NULL;
+    gchar* l_cJsonBodyTemplate = "{ \"deploymentStatus\" : %s}";
+    
+    /* ---- Building the body ---- */
+    size_t l_sizeJsonDataSize = snprintf(NULL, 0, l_cJsonBodyTemplate, p_cDeployStatus) + 1;
+    l_cJsonBody =  (gchar *)malloc(l_sizeJsonDataSize);
+
+    if (!l_cJsonBody) {
+        g_warning("Memory allocation failed.");
+        goto out;
+    }
+
+    snprintf(l_cJsonBody, l_sizeJsonDataSize, l_cJsonBodyTemplate, p_cDeployStatus);
+
+    g_message("Body: %s", l_cJsonBody);
+
+    return api_patch(l_cRoute, p_cJwtToken, l_cJsonBody);
+
+out:
+    return -1;
+}
+
+
 /**
  * @brief Get the next update url
  * @param p_cJwtToken : The JWT token
@@ -362,6 +388,7 @@ http* api_get_update_next (gchar* p_cJwtToken)
     CURLcode res;
     GError **error = NULL;
     http *l_http = (http*)malloc(sizeof(http));
+    
 
     JsonParser *parser = json_parser_new();;
     gchar* l_cConcatenatedUrl;
@@ -443,7 +470,8 @@ http* api_get_update_next (gchar* p_cJwtToken)
 
 out:
     g_free(l_cConcatenatedUrl);
-    return NULL;
+    l_http->body = "";
+    return l_http;
 }
 
 /**
@@ -457,12 +485,7 @@ gchar* poll_for_updates(gchar* p_cJwtToken) {
     
     do {
         l_cUpdateUrl = api_get_update_next(p_cJwtToken)->body;
-        if(l_cUpdateUrl == NULL)
-        {
-            g_warning("Error on api_get_update_next");
-            return NULL;
-        }
-
+      
         if (l_cUpdateUrl != NULL && strlen(l_cUpdateUrl) > 0) {
             // Stop polling
             l_iPolling = 0;
@@ -471,19 +494,12 @@ gchar* poll_for_updates(gchar* p_cJwtToken) {
             printf("Update available at: %s\n", l_cUpdateUrl);
         } else {
             // No update available, you can log this if needed
-            printf("No update available.\n");
+            g_message("No update available.\n");
         }
 
         // Sleep for the specified interval before polling again
         sleep(1);
 
     } while (l_iPolling == 1);
-
-    // It's important to check if updateUrl is not NULL before returning it
-    if (l_cUpdateUrl != NULL) {
-        return l_cUpdateUrl;
-    } else {
-        // Handle the case where updateUrl is NULL (no update available)
-        return NULL;
-    }
+    return l_cUpdateUrl;
 }
