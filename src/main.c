@@ -11,16 +11,25 @@ int main()
     ErrorCode errorCode = ERROR_NONE;
     progressBundle progress;
     gchar *l_slotName;
-    gchar *l_cJwtToken;
     GError *error = NULL;
     gchar *l_cDeviceStatus;
     gchar* l_cUpdateStatus;
     gchar *l_cPourcentage;
     gchar *l_cLastError;
+    http *l_httpSignIn;
+    glong l_lHttpCode;
 
-    l_cJwtToken = api_post_device_signin();
+    l_httpSignIn = api_post_device_signin();
     l_cDeviceStatus = "online";
-    api_patch_device_status(l_cJwtToken, l_cDeviceStatus);
+    l_lHttpCode = api_patch_device_status(l_httpSignIn->body, l_cDeviceStatus);
+    if(l_lHttpCode != 200)
+    {
+        //errorCode = ERROR_DURING_PATCH_DEVICE_STATUS;
+        //g_warning("An error occured : %s", getErrorMessage(errorCode));
+        l_httpSignIn = api_post_device_signin();
+        api_patch_device_status(l_httpSignIn->body, l_cDeviceStatus);
+    }
+
 
     GDBusConnection *connection = createConnection();
     if (connection == NULL)
@@ -61,7 +70,14 @@ int main()
         case 0:
             g_message("No error during boot");
             l_cUpdateStatus = "Done";
-            api_patch_update_status(l_cJwtToken, l_cUpdateStatus);
+            l_lHttpCode = api_patch_update_status(l_httpSignIn->body, l_cUpdateStatus);
+            if(l_lHttpCode != 200)
+            {
+                //errorCode = ERROR_DURING_PATCH_UPDATE_STATUS;
+                //g_warning("An error occured : %s", getErrorMessage(errorCode));
+                l_httpSignIn = api_post_device_signin();
+                api_patch_update_status(l_httpSignIn->body, l_cUpdateStatus);
+            }
 
             break;
         case 1:
@@ -99,9 +115,9 @@ int main()
 
     do
     {
-        gchar *l_url = poll_for_updates(l_cJwtToken);
-        l_url = "https://147.135.129.16:9000/kaka/bundle%284%29.raucb?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=rootIsRoot%2F20240125%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240125T143610Z&X-Amz-Expires=36000&X-Amz-SignedHeaders=host&X-Amz-Signature=486fb604b044e658e1a1941e788f3bc7aa60f616c8df108fda23b168e480632b";
-
+        gchar *l_url = poll_for_updates(l_httpSignIn->body);
+        
+        l_url = "data/bundle.raucb";
         // Create a proxy for the bundle installer
         GDBusProxy *proxyBundle = createProxy(connection, "de.pengutronix.rauc", "/", "de.pengutronix.rauc.Installer", error);
         if (proxyBundle == NULL)
@@ -122,18 +138,39 @@ int main()
         else
         {
             l_cUpdateStatus = "Triggered";
-            api_patch_update_status(l_cJwtToken, l_cUpdateStatus);
+            l_lHttpCode = api_patch_update_status(l_httpSignIn->body, l_cUpdateStatus);
+            if(l_lHttpCode != 200)
+            {
+                //errorCode = ERROR_DURING_PATCH_UPDATE_STATUS;
+                //g_warning("An error occured : %s", getErrorMessage(errorCode));
+                l_httpSignIn = api_post_device_signin();
+                api_patch_update_status(l_httpSignIn->body, l_cUpdateStatus);
+            }
         }
         sleep(3);
         g_object_unref(proxyBundle);
 
         while (1)
         {
-            api_patch_update_status(l_cJwtToken, l_cUpdateStatus);
+            l_lHttpCode = api_patch_update_status(l_httpSignIn->body, l_cUpdateStatus);
+            if(l_lHttpCode != 200)
+            {
+                //errorCode = ERROR_DURING_PATCH_UPDATE_STATUS;
+                //g_warning("An error occured : %s", getErrorMessage(errorCode));
+                l_httpSignIn = api_post_device_signin();
+                api_patch_update_status(l_httpSignIn->body, l_cUpdateStatus);
+            }
 
             progress = getProgress(connection, error);
             l_cPourcentage = g_strdup_printf("%d", progress.pourcentage);
-            api_patch_progress(l_cJwtToken, l_cPourcentage);
+            l_lHttpCode = api_patch_progress(l_httpSignIn->body, l_cPourcentage);
+            if(l_lHttpCode != 200)
+            {
+                //errorCode = ERROR_DURING_PATCH_PROGRESS;
+                //g_warning("An error occured : %s", getErrorMessage(errorCode));
+                l_httpSignIn = api_post_device_signin();
+                api_patch_progress(l_httpSignIn->body, l_cPourcentage);
+            }
 
             l_cLastError = getLastError(connection, error);
 
@@ -190,7 +227,14 @@ int main()
     }
 
     l_cUpdateStatus = "rebooting";
-    api_patch_update_status(l_cJwtToken, l_cUpdateStatus);
+    l_lHttpCode = api_patch_update_status(l_httpSignIn->body, l_cUpdateStatus);
+    if(l_lHttpCode != 200)
+    {
+        //errorCode = ERROR_DURING_PATCH_UPDATE_STATUS;
+        //g_warning("An error occured : %s", getErrorMessage(errorCode));
+        l_httpSignIn = api_post_device_signin();
+        api_patch_update_status(l_httpSignIn->body, l_cUpdateStatus);
+    }
 
     sleep(5);
 

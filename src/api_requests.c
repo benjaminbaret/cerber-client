@@ -40,14 +40,15 @@ gchar* get_complete_url(const gchar* p_cUrl, const gchar* p_cRoute) {
 
 /**
  * @brief Post the device signin request
- * @return gchar* : The bearer token if found, null if not
+ * @return http* : The bearer token if found + the http code
  * @note The returned string must be freed
 */
-gchar* api_post_device_signin()
+http* api_post_device_signin()
 {
     CURL *curl;
     CURLcode res;
     GError **error = NULL;
+    http *l_http = (http*)malloc(sizeof(http));
 
     JsonParser *parser = json_parser_new();;
     JsonObject *root;
@@ -119,23 +120,20 @@ gchar* api_post_device_signin()
 
     /* ---- Parsing response ---- */
     response_buffer[199] = '\0'; // ensure buffer is null-terminated
-    glong http_code = 0;
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &l_http->code);
 
     json_parser_load_from_data(parser, response_buffer, -1, NULL);
     //g_message("Response buffer %s", response_buffer);
 
     root = json_node_get_object(json_parser_get_root(parser));
-    gchar* l_cJwtToken = NULL;
 
-    g_message("HTTP code: %ld\n", http_code);
+    g_message("HTTP code: %ld\n", l_http->code);
 
-    switch(http_code)
+    switch(l_http->code)
     {
         case HTTP_OK:
         {
-            const gchar *l_cResponse = json_object_get_string_member(root, "access_token");
-            l_cJwtToken = l_cResponse;
+            l_http->body = json_object_get_string_member(root, "access_token");
             break;
         }
         case HTTP_BAD_REQUEST:
@@ -156,7 +154,7 @@ gchar* api_post_device_signin()
     g_free(l_cConcatenatedUrl);
     g_free(json_data);
     g_free(response_buffer);
-    return l_cJwtToken;
+    return l_http;
 
 out:
     g_free(l_cConcatenatedUrl);
@@ -378,18 +376,20 @@ out:
 /**
  * @brief Get the next update url
  * @param p_cJwtToken : The JWT token
- * @return gchar* : The next update url
+ * @return http* : The next update url + the http code
  * @note The returned string must be freed
 */
-gchar* api_get_update_next (gchar* p_cJwtToken)
+http* api_get_update_next (gchar* p_cJwtToken)
 {
     CURL *curl;
     CURLcode res;
     GError **error = NULL;
+    http *l_http = (http*)malloc(sizeof(http));
+
     JsonParser *parser = json_parser_new();;
     gchar* l_cConcatenatedUrl;
 
-    glong http_code = -1;
+    l_http->code = -1;
 
     const gchar* l_cUrl = get_value_from_config_file("url");    
 
@@ -449,24 +449,24 @@ gchar* api_get_update_next (gchar* p_cJwtToken)
 
     /* ---- Parsing response ---- */
     response_buffer[2000] = '\0'; // ensure buffer is null-terminated
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &l_http->code);
     //g_message("Response buffer : %s", response_buffer);
-    if(http_code != 200)
+    if(l_http->code != 200)
     {
-        g_warning("HTTP CODE %ld received, message %s:", http_code, response_buffer);
+        g_warning("HTTP CODE %ld received, message %s:", l_http->code, response_buffer);
         goto out;
     }
 
     json_parser_load_from_data(parser, response_buffer, -1, NULL);
     JsonObject *root = json_node_get_object(json_parser_get_root(parser));
-    gchar *url = json_object_get_string_member(root, "url");
+    l_http->body = json_object_get_string_member(root, "url");
 
     g_free(l_cConcatenatedUrl);    
-    return url;
+    return l_http;
 
 out:
     g_free(l_cConcatenatedUrl);
-    return "";
+    return NULL;
 }
 
 /**
@@ -479,7 +479,12 @@ gchar* poll_for_updates(gchar* p_cJwtToken) {
     gchar* updateUrl;
     
     do {
-        updateUrl = api_get_update_next(p_cJwtToken);
+        updateUrl = api_get_update_next(p_cJwtToken)->body;
+        if(updateUrl == NULL)
+        {
+            g_warning("Error on api_get_update_next");
+            return NULL;
+        }
 
         if (updateUrl != NULL && strlen(updateUrl) > 0) {
             // Stop polling
