@@ -27,7 +27,7 @@ gchar* get_complete_url(const gchar* p_cUrl, const gchar* p_cRoute);
 
 size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp);
 
-http* api_post_device_signin();
+gchar* api_post_device_signin();
 
 glong api_patch(gchar* p_cRoute, gchar* p_cJwtToken, gchar* p_cBody);
 

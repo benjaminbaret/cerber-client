@@ -43,97 +43,77 @@ gchar* get_complete_url(const gchar* p_cUrl, const gchar* p_cRoute) {
  * @return http* : The bearer token if found + the http code
  * @note The returned string must be freed
 */
-http* api_post_device_signin()
+gchar* api_post_device_signin()
 {
     CURL *curl;
     CURLcode res;
     GError **error = NULL;
-    http *l_http = (http*)malloc(sizeof(http));
-
     JsonParser *parser = json_parser_new();;
     JsonObject *root;
-
     const gchar* l_cUrl = get_value_from_config_file("url");    
     const gchar* l_cSignature = get_value_from_config_file("signature");
     const gchar* l_cPassword = get_value_from_config_file("password");
-
     const gchar *json_template;
     gchar *json_data = NULL;
     gchar *response_buffer;
-
-
     if(l_cUrl == NULL || l_cSignature == NULL || l_cPassword == NULL)
     {
         g_warning("Error on config file : Missing a value");
         goto out;
     }
-
     gchar* l_cConcatenatedUrl = get_complete_url(l_cUrl, "/auth/signin");
-
     curl = curl_easy_init();
-
     if (!curl) 
     {
         g_warning("Starting libcurl session failed");
         goto out;
     }
-
     /* ----- Building HTTP Request ----- */
-
     /* ---- Path ---- */
     curl_easy_setopt(curl, CURLOPT_URL, l_cConcatenatedUrl);
-
     /* ---- Method ---- */
     curl_easy_setopt(curl, CURLOPT_POST, 1L); 
-
     /* ---- Header ---- */
     struct curl_slist *headers = NULL;
     headers = curl_slist_append(headers, "Content-Type: application/json");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
     /*  ---- Body ---- */
     json_template = "{\"signature\":\"%s\",\"password\":\"%s\"}";
     size_t json_data_size = snprintf(NULL, 0, json_template, l_cSignature, l_cPassword) + 1;
     json_data =  (gchar *)malloc(json_data_size);
-
     if (!json_data) {
         g_warning("Memory allocation failed.");
         goto out;
     }
     snprintf(json_data, json_data_size, json_template, l_cSignature, l_cPassword);
-
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_data);
     response_buffer =  (gchar*)malloc(sizeof (gchar) * 200);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, response_buffer);
-
     /* ---- Send request ---- */
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     g_message("Sending POST request at %s", l_cConcatenatedUrl);
     res = curl_easy_perform(curl);
-
     if (res != CURLE_OK) {
         g_warning("cURL request failed: %s\n", curl_easy_strerror(res));
         goto out;
     }
-
     /* ---- Parsing response ---- */
     response_buffer[199] = '\0'; // ensure buffer is null-terminated
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &l_http->code);
-
+    glong http_code = 0;
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
     json_parser_load_from_data(parser, response_buffer, -1, NULL);
     //g_message("Response buffer %s", response_buffer);
-
     root = json_node_get_object(json_parser_get_root(parser));
-
-    g_message("HTTP code: %ld\n", l_http->code);
-
-    switch(l_http->code)
+    gchar* l_cJwtToken = NULL;
+    g_message("HTTP code: %ld\n", http_code);
+    switch(http_code)
     {
         case HTTP_OK:
         {
-            l_http->body = json_object_get_string_member(root, "access_token");
+            const gchar *l_cResponse = json_object_get_string_member(root, "access_token");
+            l_cJwtToken = l_cResponse;
             break;
         }
         case HTTP_BAD_REQUEST:
@@ -148,14 +128,11 @@ http* api_post_device_signin()
         {
             break;
         }
-
     }
-
     g_free(l_cConcatenatedUrl);
     g_free(json_data);
     g_free(response_buffer);
-    return l_http;
-
+    return l_cJwtToken;
 out:
     g_free(l_cConcatenatedUrl);
     g_free(json_data);
