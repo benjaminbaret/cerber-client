@@ -147,7 +147,6 @@ int main()
                 api_patch_update_status(l_httpSignIn->body, l_cUpdateStatus);
             }
         }
-        sleep(3);
         g_object_unref(proxyBundle);
 
         while (1)
