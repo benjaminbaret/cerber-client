@@ -210,6 +210,8 @@ glong api_patch (gchar* p_cRoute, gchar* p_cJwtToken, gchar* p_cBody)
     /* ---- Send request ---- */
     g_message("Sending PATCH request at %s", l_cConcatenatedUrl);
 
+    
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
     res = curl_easy_perform(curl); 
 
     if (res != CURLE_OK) {
@@ -355,9 +357,10 @@ glong api_patch_deploy_status (gchar* p_cJwtToken, gboolean p_cDeployStatus)
     gchar* l_cRoute = "/device/deployment/status";
     gchar* l_cJsonBody = NULL;
     gchar* l_cJsonBodyTemplate = "{ \"deploymentStatus\" : %s}";
+    gchar* l_cDeployStatus = p_cDeployStatus == TRUE ? "true" : "false";
     
     /* ---- Building the body ---- */
-    size_t l_sizeJsonDataSize = snprintf(NULL, 0, l_cJsonBodyTemplate, p_cDeployStatus) + 1;
+    size_t l_sizeJsonDataSize = snprintf(NULL, 0, l_cJsonBodyTemplate, l_cDeployStatus) + 1;
     l_cJsonBody =  (gchar *)malloc(l_sizeJsonDataSize);
 
     if (!l_cJsonBody) {
@@ -365,7 +368,7 @@ glong api_patch_deploy_status (gchar* p_cJwtToken, gboolean p_cDeployStatus)
         goto out;
     }
 
-    snprintf(l_cJsonBody, l_sizeJsonDataSize, l_cJsonBodyTemplate, p_cDeployStatus);
+    snprintf(l_cJsonBody, l_sizeJsonDataSize, l_cJsonBodyTemplate, l_cDeployStatus);
 
     g_message("Body: %s", l_cJsonBody);
 

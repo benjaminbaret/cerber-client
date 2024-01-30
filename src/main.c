@@ -17,7 +17,7 @@ int main()
     gchar *l_cPourcentage;
     gchar *l_cLastError;
     gchar* l_cJwtToken;
-    gboolean l_cDeployStatus;
+    gboolean l_bDeployStatus;
     http *l_httpSignIn;
     glong l_lHttpCode;
 
@@ -237,14 +237,14 @@ int main()
         l_cJwtToken = api_post_device_signin();
         api_patch_update_status(l_cJwtToken, l_cUpdateStatus);
     }
-    l_cDeployStatus = FALSE;
-    l_lHttpCode = api_patch_deploy_status(l_cJwtToken, l_cDeployStatus);
+    l_bDeployStatus = FALSE;
+    l_lHttpCode = api_patch_deploy_status(l_cJwtToken, l_bDeployStatus);
     if(l_lHttpCode == 401)
     {
         //errorCode = ERROR_DURING_PATCH_DEPLOY_STATUS;
         //g_warning("An error occured : %s", getErrorMessage(errorCode));
         l_cJwtToken = api_post_device_signin();
-        api_patch_deploy_status(l_cJwtToken, l_cDeployStatus);
+        api_patch_deploy_status(l_cJwtToken, l_bDeployStatus);
     }
 
 
