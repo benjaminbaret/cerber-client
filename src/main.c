@@ -13,25 +13,28 @@ int main()
     gchar *l_slotName;
     GError *error = NULL;
     gchar *l_cDeviceStatus;
-    gchar* l_cUpdateStatus;
+    gchar *l_cUpdateStatus;
     gchar *l_cPourcentage;
     gchar *l_cLastError;
-    gchar* l_cJwtToken;
+    gchar *l_cJwtToken;
     gboolean l_bDeployStatus;
     http *l_httpSignIn;
     glong l_lHttpCode;
 
-    l_cJwtToken = api_post_device_signin();
+
+    do{
+        l_httpSignIn = api_post_device_signin();
+        l_cJwtToken = l_httpSignIn->body;
+    }while(l_httpSignIn->code != 200);
+
+
     l_cDeviceStatus = "online";
     l_lHttpCode = api_patch_device_status(l_cJwtToken, l_cDeviceStatus);
-    if(l_lHttpCode == 401)
+    if (l_lHttpCode == 401)
     {
-        //errorCode = ERROR_DURING_PATCH_DEVICE_STATUS;
-        //g_warning("An error occured : %s", getErrorMessage(errorCode));
-        l_cJwtToken = api_post_device_signin();
+        l_cJwtToken = api_post_device_signin()->body;
         api_patch_device_status(l_cJwtToken, l_cDeviceStatus);
     }
-
 
     GDBusConnection *connection = createConnection();
     if (connection == NULL)
@@ -66,19 +69,27 @@ int main()
         gint l_iRemoveLockFile = 0;
         l_iBoot = readLockBoot(l_slotName, "/data/boot.txt");
 
-
         switch (l_iBoot)
         {
         case 0:
             g_message("No error during boot");
             l_cUpdateStatus = "Done";
             l_lHttpCode = api_patch_update_status(l_cJwtToken, l_cUpdateStatus);
-            if(l_lHttpCode == 401)
+            if (l_lHttpCode == 401)
             {
-                //errorCode = ERROR_DURING_PATCH_UPDATE_STATUS;
-                //g_warning("An error occured : %s", getErrorMessage(errorCode));
-                l_cJwtToken = api_post_device_signin();
+                // errorCode = ERROR_DURING_PATCH_UPDATE_STATUS;
+                // g_warning("An error occured : %s", getErrorMessage(errorCode));
+                l_cJwtToken = api_post_device_signin()->body;
                 api_patch_update_status(l_cJwtToken, l_cUpdateStatus);
+            }
+            l_bDeployStatus = FALSE;
+            l_lHttpCode = api_patch_deploy_status(l_cJwtToken, l_bDeployStatus);
+            if (l_lHttpCode == 401)
+            {
+                // errorCode = ERROR_DURING_PATCH_DEPLOY_STATUS;
+                // g_warning("An error occured : %s", getErrorMessage(errorCode));
+                l_cJwtToken = api_post_device_signin()->body;
+                api_patch_deploy_status(l_cJwtToken, l_bDeployStatus);
             }
 
             break;
@@ -95,7 +106,6 @@ int main()
             g_warning("An error occured : %s", getErrorMessage(errorCode));
             break;
         }
-
 
         l_iRemoveLockFile = removeLockFile("/data/boot.txt");
         switch (l_iRemoveLockFile)
@@ -118,10 +128,7 @@ int main()
     do
     {
         gchar *l_url = poll_for_updates(l_cJwtToken);
-        //l_url = "/data/update-2024.raucb";
-        
-        //l_url = "data/bundle.raucb";
-        // Create a proxy for the bundle installer
+
         GDBusProxy *proxyBundle = createProxy(connection, "de.pengutronix.rauc", "/", "de.pengutronix.rauc.Installer", error);
         if (proxyBundle == NULL)
         {
@@ -142,11 +149,9 @@ int main()
         {
             l_cUpdateStatus = "Triggered";
             l_lHttpCode = api_patch_update_status(l_cJwtToken, l_cUpdateStatus);
-            if(l_lHttpCode == 401)
+            if (l_lHttpCode == 401)
             {
-                //errorCode = ERROR_DURING_PATCH_UPDATE_STATUS;
-                //g_warning("An error occured : %s", getErrorMessage(errorCode));
-                l_cJwtToken = api_post_device_signin();
+                l_cJwtToken = api_post_device_signin()->body;
                 api_patch_update_status(l_cJwtToken, l_cUpdateStatus);
             }
         }
@@ -155,22 +160,18 @@ int main()
         while (1)
         {
             l_lHttpCode = api_patch_update_status(l_cJwtToken, l_cUpdateStatus);
-            if(l_lHttpCode == 401)
+            if (l_lHttpCode == 401)
             {
-                //errorCode = ERROR_DURING_PATCH_UPDATE_STATUS;
-                //g_warning("An error occured : %s", getErrorMessage(errorCode));
-                l_cJwtToken = api_post_device_signin();
+                l_cJwtToken = api_post_device_signin()->body;
                 api_patch_update_status(l_cJwtToken, l_cUpdateStatus);
             }
 
             progress = getProgress(connection, error);
             l_cPourcentage = g_strdup_printf("%d", progress.pourcentage);
             l_lHttpCode = api_patch_progress(l_cJwtToken, l_cPourcentage);
-            if(l_lHttpCode == 401)
+            if (l_lHttpCode == 401)
             {
-                //errorCode = ERROR_DURING_PATCH_PROGRESS;
-                //g_warning("An error occured : %s", getErrorMessage(errorCode));
-                l_cJwtToken = api_post_device_signin();
+                l_cJwtToken = api_post_device_signin()->body;
                 api_patch_progress(l_cJwtToken, l_cPourcentage);
             }
 
@@ -197,7 +198,6 @@ int main()
     gint l_iWriteLockBoot = 0;
     l_iWriteLockBoot = writeLockBoot(l_slotName, "/data/boot.txt");
 
-
     switch (l_iWriteLockBoot)
     {
     case 0:
@@ -207,7 +207,7 @@ int main()
         errorCode = ERROR_DURING_WRITE_LOCK_BOOT;
         g_warning("An error occured : %s", getErrorMessage(errorCode));
         break;
-    case 2: 
+    case 2:
         errorCode = ERROR_FILE_NOT_FOUND;
         g_warning("An error occured : %s", getErrorMessage(errorCode));
         break;
@@ -228,32 +228,20 @@ int main()
         break;
     }
 
-    l_cUpdateStatus = "rebooting";
+    l_cUpdateStatus = "Rebooting";
     l_lHttpCode = api_patch_update_status(l_cJwtToken, l_cUpdateStatus);
-    if(l_lHttpCode == 401)
+    if (l_lHttpCode == 401)
     {
-        //errorCode = ERROR_DURING_PATCH_UPDATE_STATUS;
-        //g_warning("An error occured : %s", getErrorMessage(errorCode));
-        l_cJwtToken = api_post_device_signin();
+        l_cJwtToken = api_post_device_signin()->body;
         api_patch_update_status(l_cJwtToken, l_cUpdateStatus);
     }
-    l_bDeployStatus = FALSE;
-    l_lHttpCode = api_patch_deploy_status(l_cJwtToken, l_bDeployStatus);
-    if(l_lHttpCode == 401)
-    {
-        //errorCode = ERROR_DURING_PATCH_DEPLOY_STATUS;
-        //g_warning("An error occured : %s", getErrorMessage(errorCode));
-        l_cJwtToken = api_post_device_signin();
-        api_patch_deploy_status(l_cJwtToken, l_bDeployStatus);
-    }
-
 
     sleep(5);
 
     g_object_unref(proxy);
     g_object_unref(connection);
-   
-   system("reboot");
+
+    system("reboot");
 
     return 0;
 }

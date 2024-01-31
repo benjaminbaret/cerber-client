@@ -43,10 +43,11 @@ gchar* get_complete_url(const gchar* p_cUrl, const gchar* p_cRoute) {
  * @return http* : The bearer token if found + the http code
  * @note The returned string must be freed
 */
-gchar* api_post_device_signin()
+http* api_post_device_signin()
 {
     CURL *curl;
     CURLcode res;
+    http *l_http = (http*)malloc(sizeof(http));
     GError **error = NULL;
     JsonParser *parser = json_parser_new();;
     JsonObject *root;
@@ -132,12 +133,16 @@ gchar* api_post_device_signin()
     g_free(l_cConcatenatedUrl);
     g_free(json_data);
     g_free(response_buffer);
-    return l_cJwtToken;
+    l_http->body = l_cJwtToken;
+    l_http->code = http_code;
+    return l_http;
 out:
     g_free(l_cConcatenatedUrl);
     g_free(json_data);
     g_free(response_buffer);
-    return NULL;
+    l_http->body = "";
+    l_http->code = http_code;
+    return l_http;
 }
 
 /**
@@ -211,7 +216,6 @@ glong api_patch (gchar* p_cRoute, gchar* p_cJwtToken, gchar* p_cBody)
     g_message("Sending PATCH request at %s", l_cConcatenatedUrl);
 
     
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
     res = curl_easy_perform(curl); 
 
     if (res != CURLE_OK) {
