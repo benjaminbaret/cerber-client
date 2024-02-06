@@ -489,9 +489,20 @@ out:
 gchar* poll_for_updates(gchar* p_cJwtToken) {
     gint l_iPolling = 1;
     gchar* l_cUpdateUrl;
+    gchar* l_cDeviceStatus;
+    glong l_lHttpCode;
     
     do {
         l_cUpdateUrl = api_get_update_next(p_cJwtToken)->body;
+        l_cDeviceStatus = "online";
+        l_lHttpCode = api_patch_device_status(p_cJwtToken, l_cDeviceStatus);
+        if (l_lHttpCode == 401)
+        {
+            p_cJwtToken = api_post_device_signin()->body;
+            api_patch_device_status(p_cJwtToken, l_cDeviceStatus);
+        }
+
+
       
         if (l_cUpdateUrl != NULL && strlen(l_cUpdateUrl) > 0) {
             // Stop polling
@@ -505,7 +516,7 @@ gchar* poll_for_updates(gchar* p_cJwtToken) {
         }
 
         // Sleep for the specified interval before polling again
-        sleep(1);
+        sleep(5);
 
     } while (l_iPolling == 1);
     return l_cUpdateUrl;

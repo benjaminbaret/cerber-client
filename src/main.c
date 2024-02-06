@@ -21,12 +21,10 @@ int main()
     http *l_httpSignIn;
     glong l_lHttpCode;
 
-
     do{
         l_httpSignIn = api_post_device_signin();
         l_cJwtToken = l_httpSignIn->body;
     }while(l_httpSignIn->code != 200);
-
 
     l_cDeviceStatus = "online";
     l_lHttpCode = api_patch_device_status(l_cJwtToken, l_cDeviceStatus);
@@ -190,7 +188,7 @@ int main()
             {
                 break;
             }
-            usleep(800000);
+            usleep(500000);
         }
 
     } while (g_strcmp0(l_cLastError, "") != 0);
