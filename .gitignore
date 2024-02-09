@@ -1,6 +1,11 @@
 # cerber
 cerber-client
 build/*
+src/build/*
+test/build/*
+
+#vscode
+.vscode
 
 # Prerequisites
 *.d
